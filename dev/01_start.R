@@ -60,7 +60,8 @@ golem::use_recommended_deps()
 # usethis::use_code_of_conduct(contact = "Golem User")
 # usethis::use_lifecycle_badge("Experimental")
 # usethis::use_news_md(open = FALSE)
-# commenting these out for now (sheila)
+usethis::use_cc0_license()  # recommended based on TADAShiny app
+# commenting others out for now (sheila)
 
 ## Init Testing Infrastructure ----
 ## Create a template for tests

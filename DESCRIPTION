@@ -11,7 +11,7 @@ Authors@R: c(
     person("Yu-Chen", "Wang", role = "aut")
   )
 Description: The overall goal of the `TADAShinyJoinToAU` shiny app is to provide a second module to the `TADAShiny` shiny app where users can join monitoring locations to their respective assessment units (AUs).
-License: What license is it under?
+License: CC0
 Imports: 
     attempt,
     config,
