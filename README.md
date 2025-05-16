@@ -1,5 +1,7 @@
 # TADAShinyJoinToAU
 
+[![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
+
 ## 1. Overview
 
 The overall goal of the `TADAShinyJoinToAU` shiny app is to provide a second module to the `TADAShiny` shiny app where users can join monitoring locations from a WQX database to their respective assessment units (AUs).

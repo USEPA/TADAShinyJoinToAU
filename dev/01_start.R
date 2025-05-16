@@ -61,6 +61,7 @@ golem::use_recommended_deps()
 # usethis::use_lifecycle_badge("Experimental")
 # usethis::use_news_md(open = FALSE)
 usethis::use_cc0_license()  # recommended based on TADAShiny app
+usethis::use_lifecycle_badge( "Experimental" )
 # commenting others out for now (sheila)
 
 ## Init Testing Infrastructure ----
