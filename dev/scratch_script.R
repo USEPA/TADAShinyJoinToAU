@@ -76,6 +76,8 @@ golem::use_utils_server()
 # create empty raw data (placeholder)
 usethis::use_data_raw("mltoau_crosswalk")
 # see mltoau_crosswalk.R script in data-raw for subsequent steps
+# see https://brouwern.github.io/biodata/articles/x-adding_raw_data.html
+# see https://engineering-shiny.org/common-app-caveats.html?q=use_data_raw#reading-data
 
 # modules: (1) load file, (2) join aus
 # 15. create module to load file
@@ -130,8 +132,8 @@ golem::amend_golem_config(key = "MB_LIMIT", value = 200)
 # ---- code testing ----
 
 library(fs)
-test_file_path <- fs::path_tidy("C:/Users/sheila.saia/OneDrive - Tetra Tech, Inc/proj 2025 epa region8/5_Work/join2au_app/example_data_from_ben/TADA_Utah_Nutrients_trimsubset1_20250407.csv")
-df_input <- utils::read.delim(test_file_path,
+test_file_path <- fs::path_tidy("C:/Users/sheila.saia/OneDrive - Tetra Tech, Inc/proj 2025 epa region8/5_Work/join2au_app/example_data_from_ben/TADA_Utah_Nutrients_trimsubset2_20250407.csv")
+df_ml_data <- utils::read.delim(test_file_path,
                               header = TRUE,
                               sep = ",",
                               stringsAsFactors = FALSE,
