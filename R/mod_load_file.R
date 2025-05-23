@@ -162,6 +162,9 @@ mod_load_file_server <- function(id, tadat){
       # button, disable, download
       # shinyjs::disable("b_download")
       
+      # enable second tab to be selected once input data is processed
+      shinyjs::enable(selector = '.nav li a[data-value="Join"]')
+      
       # return
       return(df_ml_input)
     })
