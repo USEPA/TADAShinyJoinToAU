@@ -25,7 +25,7 @@ golem::fill_desc(
   authors = c(person(given = "Cristina", # Your First Name
                      family = "Mullin", # Your Last Name
                      email = "mywaterway@epa.gov", # Your email
-                     role = c("aut", "cre"),
+                     role = c("aut"),
                      comment = c(ORCID = "0000-0002-0615-6087")), # Your role (here author/creator)
               person(given = "Sheila", # Your First Name
                      family = "Saia", # Your Last Name
@@ -45,6 +45,7 @@ golem::fill_desc(
   pkg_version = "0.0.0.9000", # The version of the package containing the app
   set_options = TRUE # Set the global golem options
 )
+# note: can only have one maintainer (i.e., "cre" role) otherwise will get an error with devtools::check()
 
 ## Install the required dev dependencies ----
 golem::install_dev_deps()
