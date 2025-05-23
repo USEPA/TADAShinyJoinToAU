@@ -32,10 +32,11 @@ mod_join_aus_ui <- function(id) {
         ),
         htmltools::h3("2. Download Results"),
         htmltools::p("fill in"),
-        shinyjs::disabled(shiny::downloadButton(
-          inputId = ns("download_results"),
-          label = "Download Results")
-        ),
+        # disabling this for now (sheila)
+        # shinyjs::disabled(shiny::downloadButton(
+        #   outputId = ns("download_results"),
+        #   label = "Download Results")
+        # ),
         htmltools::h3("3. Select Monitoring Locations"),
         htmltools::p("fill in"),
         shiny::textInput(
@@ -87,8 +88,7 @@ mod_join_aus_ui <- function(id) {
 }
 
 # load crosswalk table
-# df_mltoau_cw <- TADAShinyJoinToAU::mltoau_crosswalk
-df_mltoau_cw <- data("mltoau_crosswalk", package = "TADAShinyJoinToAU")
+df_mltoau_cw <-TADAShinyJoinToAU::mltoau_crosswalk
 # mltoau_crosswalk is in data/ and is active b/c 
 
 # source any other info
@@ -167,7 +167,8 @@ mod_join_aus_server <- function(id, tadat){
                         ATTAINS.waterTypeCode = NA,
                         AU_Info_Source = "Regional Crosswalk Table",
                         Need_Review = "No") |>
-          dplyr::select(Need_Review, AU_Info_Source, dplyr::everything())
+          dplyr::select(Need_Review, AU_Info_Source, dplyr::everything()) |>
+          sf::st_drop_geometry()
         # this df can sometimes be empty (if all are unmatched)
         
         # increment progress bar, and update the detail text
@@ -178,7 +179,7 @@ mod_join_aus_server <- function(id, tadat){
       
         # filter out ml id's that do not have a matched au
         df_ml_unmatched <- df_join_au |>
-          filter(is.na(AU_ID))
+          dplyr::filter(is.na(AU_ID))
         
         # increment progress bar, and update the detail text
         shiny::incProgress(amount = 1/n_inc, detail = "Checked unmatched AUs...")
@@ -191,7 +192,9 @@ mod_join_aus_server <- function(id, tadat){
           
           if(dim(df_ml_unmatched)[1] > 0) {
             # convert to spatial data
-            df_ml_unmatched_spatial <- EPATADA::TADA_MakeSpatial(df_ml_unmatched)
+            df_ml_unmatched_spatial <- EPATADA::TADA_MakeSpatial(df_ml_unmatched) |>
+              sf::st_transform(crs = sf::st_crs(4326))
+            # force to wgs84 epsg = 4326 (unprojected)
             
             # define parameters
             site_ids <- unique(df_ml_unmatched_spatial$MonitoringLocationIdentifier)
@@ -204,7 +207,9 @@ mod_join_aus_server <- function(id, tadat){
             for (s in seq(1, num_site_ids, by = chunk_size)) {
               # get site
               df_temp_ml <- df_ml_unmatched_spatial |>
-                dplyr::filter(MonitoringLocationIdentifier == site_ids[s])
+                dplyr::filter(MonitoringLocationIdentifier == site_ids[s]) |>
+                sf::st_drop_geometry()
+              # force this to be df b/c was getting "arguments have different crs" error (sheila) 
               
               # get data from attains
               # tictoc::tic()
@@ -216,7 +221,7 @@ mod_join_aus_server <- function(id, tadat){
               results_list[[length(results_list) + 1]] <- df_temp_ml_attains
               
               # message
-              message(paste0(num_site_ids, " of ", num_site_ids, " unique site ids complete"))
+              message(paste0(s, " of ", num_site_ids, " unique site ids complete"))
             }
             
             # increment progress bar, and update the detail text
@@ -226,23 +231,27 @@ mod_join_aus_server <- function(id, tadat){
             # combine results
             df_ml_unmatched_attains <- dplyr::bind_rows(results_list)
             
+            # message
+            message("Bound unmatched ATTAINS info together...")
+            
             # pull joined aus
-            df_ATTAINS_AUs <- df_ml_unmatched_attains |>
+            df_ml_unmatched_attains_aus <- df_ml_unmatched_attains |>
               sf::st_drop_geometry() |>
               dplyr::select(MonitoringLocationIdentifier, MonitoringLocationName,
-                     MonitoringLocationTypeName, ATTAINS.assessmentunitidentifier,
-                     ATTAINS.assessmentunitname, ATTAINS.waterTypeCode,
-                     LatitudeMeasure, LongitudeMeasure) |>
+                            MonitoringLocationTypeName, ATTAINS.assessmentunitidentifier,
+                            ATTAINS.assessmentunitname, ATTAINS.waterTypeCode,
+                            LatitudeMeasure, LongitudeMeasure) |>
               dplyr::distinct() |>
               dplyr::mutate(AU_ID_CrosswalkMatch = NA,
-                     AU_NAME_CrosswalkMatch = NA,
-                     AU_Info_Source = dplyr::case_when((!is.na(ATTAINS.assessmentunitidentifier)) ~ "TADA ATTAINS Geospatial",
-                                                TRUE ~ "No Match; Manual Match Needed"),
-                     Need_Review = "Yes") |>
+                            AU_NAME_CrosswalkMatch = NA,
+                            AU_Info_Source = dplyr::case_when((!is.na(ATTAINS.assessmentunitidentifier)) ~ "TADA ATTAINS Geospatial",
+                                                              TRUE ~ "No Match; Manual Match Needed"),
+                            Need_Review = "Yes") |>
               dplyr::select(Need_Review, AU_Info_Source, dplyr::everything())
             
             # merge matched and unmatched df's
-            df_mltoau_review <- rbind(df_ml_unmatched_attains, df_ml_matched)
+            df_mltoau_review <- rbind(df_ml_unmatched_attains_aus, df_ml_matched)
+            # has to use rbind b/c columns are slightly different order (sheila)
             
             # increment progress bar, and update the detail text
             shiny::incProgress(amount = 1/n_inc, detail = "Initial merge of AUs for review...")
@@ -272,6 +281,9 @@ mod_join_aus_server <- function(id, tadat){
         
         #### 5. qc checks ####
         
+        # message
+        message("Run QC checks...")
+        
         # check duplicates
         df_dup_check <- df_mltoau_review |>
           dplyr::count(MonitoringLocationIdentifier) |>
@@ -290,7 +302,7 @@ mod_join_aus_server <- function(id, tadat){
                                                    (is.na(ATTAINS.waterTypeCode)) ~ NA,
                                                    TRUE ~ "OTHER"),
                         FLAG_WaterType = dplyr::case_when((ML_Type == AU_Type) ~ NA,
-                                                          (ML_Type != AU_Type) ~ "Type Mismatch"
+                                                          (ML_Type != AU_Type) ~ "Type Mismatch",
                                                           (is.na(AU_ID_CrosswalkMatch) | is.na(ATTAINS.assessmentunitidentifier)) ~ NA,
                                                           (is.na(ML_Type) | is.na(AU_Type)) ~ "Missing Info",
                                                           TRUE ~ "ERROR"),
@@ -322,7 +334,7 @@ mod_join_aus_server <- function(id, tadat){
           if (input$mlid_choice != "") {
             
             # revise ml id choice
-            df_mlid_choice <- df_mltoau_review_v2 %>% 
+            df_mlid_choice <- df_mltoau_review_v2 |>
               dplyr::filter(MonitoringLocationIdentifier == input$mlid_choice)
           }
           
@@ -360,10 +372,10 @@ mod_join_aus_server <- function(id, tadat){
           df_sub_unmatch <- df_mltoau_review_v2 |>
             dplyr::filter(AU_Info_Source == "No Match; Manual Match Needed")
           
-          leaflet::leaflet("join_map", options = leafletOptions(attributionControl = FALSE)) |>
+          leaflet::leaflet("join_map", options = leaflet::leafletOptions(attributionControl = FALSE)) |>
             leaflet::addTiles() |>
-            leaflet::addProviderTiles(providers$Esri.WorldStreetMap, group="Esri WSM") |>
-            leaflet::addProviderTiles(providers$Esri.WorldImagery, group = "Esri Ortho") |>
+            leaflet::addProviderTiles(leaflet::providers$Esri.WorldStreetMap, group="Esri WSM") |>
+            leaflet::addProviderTiles(leaflet::providers$Esri.WorldImagery, group = "Esri Ortho") |>
             leaflet::addCircleMarkers(data = df_sub_match, lat = ~LatitudeMeasure, lng = ~LongitudeMeasure,
                              group = "Matched Sites",
                              popup = paste("SiteID:", df_sub_match$MonitoringLocationIdentifier, "<br>"),
@@ -379,7 +391,7 @@ mod_join_aus_server <- function(id, tadat){
             leaflet::addLayersControl(overlayGroups = c("Matched Sites", "ATTAINS Sites", "No Match Sites"),
                              baseGroups = c("Esri WSM", "Esri Ortho"),
                              options = leaflet::layersControlOptions(collapsed = TRUE)) |>
-            leaflet::addMiniMap(toggleDisplay = TRUE, tiles = providers$Esri.WorldStreetMap,
+            leaflet::addMiniMap(toggleDisplay = TRUE, tiles = leaflet::providers$Esri.WorldStreetMap,
                        position = "bottomright") |>
             leaflet::addLegend(position = "bottomleft", 
                       colors = c("#66c2a5", "#8da0cb", "#fc8d62"), 
@@ -395,7 +407,7 @@ mod_join_aus_server <- function(id, tadat){
           # check for required value
           shiny::req(input$mlid_choice != "")
           
-          df_mltoau_select <- df_mltoau_review_v2 %>% 
+          df_mltoau_select <- df_mltoau_review_v2 |>
             dplyr::filter(MonitoringLocationIdentifier == input$mlid_choice)
           
           # get lat and lon
