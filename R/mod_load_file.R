@@ -15,7 +15,7 @@ mod_load_file_ui <- function(id) {
   # start taglist
   tagList(
     # header
-    htmltools::h2("Load File"),
+    htmltools::h2("1. Load File"),
     
     # start fluidrow
     shiny::fluidRow(
@@ -23,9 +23,9 @@ mod_load_file_ui <- function(id) {
       # left column file load prompts
       column(
         width = 4,
-        htmltools::h3("Load Monitoring Location File"),
-        htmltools::p("Only comma-separated or tab-separated files can be loaded."),
-        htmltools::h3("Select file parameters:"),
+        htmltools::h3("a. Load Monitoring Location file"),
+        htmltools::p("Monitoring location information can be obtained from the Water Quality Portal (WQP). Only comma-separated or tab-separated files can be loaded (i.e., .csv or .tsv)."),
+        htmltools::h3("b. Select file parameters:"),
         shiny::radioButtons(
           inputId = ns("separator"),
           label = "Separator",
@@ -46,15 +46,16 @@ mod_load_file_ui <- function(id) {
           )
         ),
         htmltools::hr(),
-        htmltools::p("The 'separator' parameter allows the user to load a file with different formats (e.g., csv, tsv, or txt)."),
-        htmltools::p("The file loaded here will be used for all subsequent steps."),
-        htmltools::p(paste0("Loaded file sizes are limited to a maximum size of ", get_golem_config("MB_LIMIT"), " MB."))
+        htmltools::p("The file loaded here will be used for all subsequent TADAShinyJoinToAU app steps."),
+        htmltools::p(paste0("Note: Loaded file sizes are limited to a maximum size of ", get_golem_config("MB_LIMIT"), " MB."))
       ),
       
       # right column table
       column(
         width = 8,
-        htmltools::h3("Preview Loaded Data"),
+        htmltools::h3("c. Preview loaded file"),
+        htmltools::p("Scroll, search, or sort the table below to explore previewed the loaded file. If no table is visible, you will need to select a file in Step 1b."),
+        htmltools::br(),
         DT::dataTableOutput(outputId = ns("df_import_dt"))
       )
     )
@@ -140,6 +141,7 @@ mod_load_file_server <- function(id, tadat){
                     paste("Required columns missing from the data:\n"),
                     paste("* ", col_missing, collapse = "\n")))
       )
+      # TODO add shiny alert!
       
       # commenting this out for now b/c not sure if we want it (sheila)
       # Add "results" folder if missing
