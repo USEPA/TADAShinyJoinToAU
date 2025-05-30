@@ -15,7 +15,7 @@ mod_join_aus_ui <- function(id) {
   tagList(
     
     # header
-    htmltools::h2("Join Monitoring Locations to AUs"),
+    htmltools::h2("2. Join Monitoring Locations to AUs"),
     
     # start fluidrow
     shiny::fluidRow(
@@ -23,22 +23,24 @@ mod_join_aus_ui <- function(id) {
       # left column prompts
       column(
         width = 4,
-        htmltools::h3("1. Join Monitoring Locations to AUs"),
-        htmltools::p("fill in"),
-        htmltools::h3("fill in"),
+        htmltools::h3("a. Join Monitoring Locations to AUs"),
+        htmltools::p("Click on the button below to join monitoring locations to AUs."),
         shiny::actionButton(
           inputId = ns("join_calc"),
-          label = "Join AUs"
+          label = "Join AUs",
+          style = "color: #fff; background-color: #337ab7; border-color: #2e6da4"
         ),
-        htmltools::h3("2. Download Results"),
-        htmltools::p("fill in"),
+        htmltools::h3("b. Download results"),
+        htmltools::p("Click on the button below to download the join to AU results for review."),
+        htmltools::p("<button here?>"),
         # disabling this for now (sheila)
         # shinyjs::disabled(shiny::downloadButton(
         #   outputId = ns("download_results"),
-        #   label = "Download Results")
+        #   label = "Download Results"),
+        #   style = "color: #fff; background-color: #337ab7; border-color: #2e6da4"
         # ),
-        htmltools::h3("3. Select Monitoring Locations"),
-        htmltools::p("fill in"),
+        htmltools::h3("c. Select Monitoring Locations"),
+        htmltools::p("Type in the name of the monitoring location to..."),
         shiny::textInput(
           inputId = "mlid_choice",
           label = "MonitoringLocationIdentifier",
@@ -46,25 +48,19 @@ mod_join_aus_ui <- function(id) {
         )
       ),
       
-      # right column map
+      # right column map and table
       column(
         width = 8,
-        htmltools::h3("Join Results Map"),
-        leaflet::leafletOutput(outputId = ns("join_map"),
-                               width = "90%")
-      )
-    ),
-    
-    # results summary table
-    shiny::fluidRow(
-      # left column prompts
-      column(
-        width = 6,
-        htmltools::h3("Join Results Table"),
-        DT::dataTableOutput(outputId = ns("df_results_dt")),
-        htmltools::p("fill in"),
-        # htmltools::h3("fill in"),
-      ) #,
+        htmltools::h3("d. Join results map"),
+        htmltools::p("Click on the site pin to view the SiteID. If no table is visible, you will need to click on the 'Join AUs' button in Step 2a."),
+        htmltools::br(),
+        leaflet::leafletOutput(outputId = ns("join_map"), width = "90%"),
+        htmltools::hr(),
+        htmltools::h3("e. Join results table"),
+        htmltools::p("Scroll, search, or sort the table below to explore the joined data. If no table is visible, you will need to click on the 'Join AUs' button in Step 2a."),
+        htmltools::br(),
+        DT::dataTableOutput(outputId = ns("df_results_dt"))
+      ),
       
       # match/unmatch count summary table
       # leaving this out for now b/c ben's code was shinydashboard based
@@ -79,10 +75,6 @@ mod_join_aus_ui <- function(id) {
       #   htmltools::p("fill in"),
       #   # htmltools::h3("fill in"),
       # ) #,
-      
-      # extra - delete?
-      # htmltools::hr(),
-      # htmltools::p("fill in")
     )
   )
 }
@@ -423,11 +415,48 @@ mod_join_aus_server <- function(id, tadat){
         shiny::incProgress(amount = 1/n_inc, detail = "Showed zoomed map...")
         Sys.sleep(0.25)
         
-        #### 9. download data ####
-        # leaving this out for now
+        #### 9. save results ####
+        # saved matched sites
+        results_filename <- "mltoaus_needs_review.csv"
+        results_dirname <- "results"
+        results_full_pathname <- file.path(results_dirname, results_filename)
+        # write.csv(df_mltoau_review_v2, results_full_pathname, row.names = FALSE)
+        
+        # Create zip file of results
+        # file_name_zip <- list.files(path = path_results, full.names = TRUE)
+        # zip::zip(file.path(path_results, "results.zip"), file_name_zip)
+        
+        # enable download button
+        # shinyjs::enable("download_results")
+        
+        # increment progress bar, and update the detail text
+        # shiny::incProgress(amount = 1/n_inc, detail = "Saving results for download...")
+        # Sys.sleep(0.25)
         
       }) # with progress
     }) # observe event
+    
+    #### 10. allow results download ####
+    
+    # output$download_results <- downloadHandler(
+    #   filename = function() {
+    #     # define data
+    #     df_ml_data <- tadat$df_ml_input
+    # 
+    #     # get base path
+    #     filename_input_base <- tools::file_path_sans_ext(df_ml_data$name)
+    # 
+    #     # add to base path
+    #     paste0(filename_input_base,
+    #            "_results_",
+    #            format(Sys.Date(), "%Y%m%d"),
+    #            ".zip")
+    #   },
+    #   content = function(file_name) {
+    #     # TODO i think path_results needs to be a reactive object like my_data()
+    #     file.copy(file.path(path_results, "results.zip"), file_name)
+    #   }
+    # ) # download handler
   }) # module server
 } # server
     
