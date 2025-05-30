@@ -30,16 +30,7 @@ mod_join_aus_ui <- function(id) {
           label = "Join AUs",
           style = "color: #fff; background-color: #337ab7; border-color: #2e6da4"
         ),
-        htmltools::h3("b. Download results"),
-        htmltools::p("Click on the button below to download the join to AU results for review."),
-        htmltools::p("<button here?>"),
-        # disabling this for now (sheila)
-        # shinyjs::disabled(shiny::downloadButton(
-        #   outputId = ns("download_results"),
-        #   label = "Download Results"),
-        #   style = "color: #fff; background-color: #337ab7; border-color: #2e6da4"
-        # ),
-        htmltools::h3("c. Select Monitoring Locations"),
+        htmltools::h3("b. Select Monitoring Locations"),
         htmltools::p("Type in the name of the monitoring location to..."),
         shiny::textInput(
           inputId = "mlid_choice",
@@ -51,12 +42,13 @@ mod_join_aus_ui <- function(id) {
       # right column map and table
       column(
         width = 8,
-        htmltools::h3("d. Join results map"),
+        htmltools::h3("c. View joined results"),
+        htmltools::h3("Map"),
         htmltools::p("Click on the site pin to view the SiteID. If no table is visible, you will need to click on the 'Join AUs' button in Step 2a."),
         htmltools::br(),
         leaflet::leafletOutput(outputId = ns("join_map"), width = "90%"),
         htmltools::hr(),
-        htmltools::h3("e. Join results table"),
+        htmltools::h3("Table"),
         htmltools::p("Scroll, search, or sort the table below to explore the joined data. If no table is visible, you will need to click on the 'Join AUs' button in Step 2a."),
         htmltools::br(),
         DT::dataTableOutput(outputId = ns("df_results_dt"))
@@ -416,47 +408,11 @@ mod_join_aus_server <- function(id, tadat){
         Sys.sleep(0.25)
         
         #### 9. save results ####
-        # saved matched sites
-        results_filename <- "mltoaus_needs_review.csv"
-        results_dirname <- "results"
-        results_full_pathname <- file.path(results_dirname, results_filename)
-        # write.csv(df_mltoau_review_v2, results_full_pathname, row.names = FALSE)
-        
-        # Create zip file of results
-        # file_name_zip <- list.files(path = path_results, full.names = TRUE)
-        # zip::zip(file.path(path_results, "results.zip"), file_name_zip)
-        
-        # enable download button
-        # shinyjs::enable("download_results")
-        
-        # increment progress bar, and update the detail text
-        # shiny::incProgress(amount = 1/n_inc, detail = "Saving results for download...")
-        # Sys.sleep(0.25)
+        # append to tadat
+        tadat$df_for_review <- df_mltoau_review_v2
         
       }) # with progress
     }) # observe event
-    
-    #### 10. allow results download ####
-    
-    # output$download_results <- downloadHandler(
-    #   filename = function() {
-    #     # define data
-    #     df_ml_data <- tadat$df_ml_input
-    # 
-    #     # get base path
-    #     filename_input_base <- tools::file_path_sans_ext(df_ml_data$name)
-    # 
-    #     # add to base path
-    #     paste0(filename_input_base,
-    #            "_results_",
-    #            format(Sys.Date(), "%Y%m%d"),
-    #            ".zip")
-    #   },
-    #   content = function(file_name) {
-    #     # TODO i think path_results needs to be a reactive object like my_data()
-    #     file.copy(file.path(path_results, "results.zip"), file_name)
-    #   }
-    # ) # download handler
   }) # module server
 } # server
     

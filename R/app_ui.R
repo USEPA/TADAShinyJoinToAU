@@ -63,12 +63,14 @@ app_ui <- function(request) {
         shiny::tabPanel("2. Join AUs",
                         value = "Join",
                         htmltools::br(),
-                        mod_join_aus_ui("join_aus_1")
+                        mod_join_aus_ui("join_aus_1"),
+                        htmltools::hr(),
+                        mod_download_result_ui("download_result_1")
         ),
       ),
       
       # add horizontal line
-      htmltools::hr(),
+      # htmltools::hr(),
       
       # adds 'TADA Working Summary and download buttons above the app footer
       # mod_TADA_summary_ui("TADA_summary_1"),

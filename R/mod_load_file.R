@@ -141,7 +141,8 @@ mod_load_file_server <- function(id, tadat){
                     paste("Required columns missing from the data:\n"),
                     paste("* ", col_missing, collapse = "\n")))
       )
-      # TODO add shiny alert!
+      # TODO add shiny alert! for columns
+      # TODO add shiny alert! for file size
       
       # commenting this out for now b/c not sure if we want it (sheila)
       # Add "results" folder if missing

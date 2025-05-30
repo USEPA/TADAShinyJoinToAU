@@ -20,7 +20,13 @@ app_server <- function(input, output, session) {
   # modules
   mod_load_file_server("load_file_1", tadat)
   mod_join_aus_server("join_aus_1", tadat)
+  mod_download_result_server("download_result_1", tadat)
   
   # disable other tabs upon start
   shinyjs::disable(selector = '.nav li a[data-value="Join"]')
+  
+  # save session info to tadat
+  job_id <- paste0("ts", format(Sys.time(), "%y%m%d%H%M%S"))
+  tadat$default_outfile <- paste0("tada_output_", job_id)
+  tadat$job_id <- job_id
 }

@@ -97,20 +97,24 @@ golem::amend_golem_config(key = "MB_LIMIT", value = 200)
 # 20. more info on reading data
 # https://engineering-shiny.org/common-app-caveats.html?q=data#reading-data
 
-
-
+# 21. create data download module
+golem::add_module(name = "download_result", with_test = TRUE, export = FALSE)
 
 # check in with yu-chen (notes to self)
 # 1. sourcing data
 # 2. defining namespaces
+# 3. versioning...
 
 
 
-# ---- reactives list ----
+# ---- reactive list ----
 # following "stratégie du petit r" described in:
 # https://engineering-shiny.org/structuring-project.html#communication-between-modules
 # TADAShiny module 1 uses this approach
 # tadat is name of the reactive values list
+
+# app server
+# tadat: "default_outfile", "job_id"
 
 # mod_load_file
 # inputs: "input_file", "separator"
@@ -118,15 +122,14 @@ golem::amend_golem_config(key = "MB_LIMIT", value = 200)
 # tadat: "df_ml_input"
 
 # mod_join_aus
-# inputs: "join_calc", "download_results", "mlid_choice", 
+# inputs: "join_calc", "mlid_choice", 
 # outputs: "join_map", "df_results_dt"
+# tadat: "df_for_review"
 
-# mod_summary
-# inputs:
-# outputs:
-
-
-
+# mod_download_results
+# inputs: none
+# outputs: "download_results", 
+# tadat: none
 
 
 # ---- code testing ----
