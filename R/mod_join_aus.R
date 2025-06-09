@@ -42,7 +42,9 @@ mod_join_aus_ui <- function(id) {
       # right column map and table
       column(
         width = 8,
-        htmltools::h3("c. View joined results"),
+        htmltools::h3("c. Join summary"),
+        shiny::verbatimTextOutput(outputId = ns("join_summary"), placeholder = TRUE),
+        htmltools::h3("d. View joined results"),
         htmltools::h3("Map"),
         htmltools::p("Click on the site pin to view the SiteID. If no table is visible, you will need to click on the 'Join AUs' button in Step 2a."),
         htmltools::br(),
@@ -108,7 +110,7 @@ mod_join_aus_server <- function(id, tadat){
         
         # skipping output sink that ben added for now
         
-        # message
+        # log to command line
         message("Begin joining monitoring locations to AUs...")
         message(paste0("Current system time: ", Sys.time()))
         # message(paste0("Imported file name: ", input$input_file$name))
@@ -204,8 +206,15 @@ mod_join_aus_server <- function(id, tadat){
               # store result
               results_list[[length(results_list) + 1]] <- df_temp_ml_attains
               
-              # message
+              # log to command line
               message(paste0(s, " of ", num_site_ids, " unique site ids complete"))
+              
+              # user notification that site ids complete
+              shiny::showNotification(
+                paste0(s, " of ", num_site_ids, " unique site ids complete"),
+                type = "message",
+                duration = 2
+              )
             }
             
             # increment progress bar, and update the detail text
@@ -215,7 +224,7 @@ mod_join_aus_server <- function(id, tadat){
             # combine results
             df_ml_unmatched_attains <- dplyr::bind_rows(results_list)
             
-            # message
+            # log to command line
             message("Bound unmatched ATTAINS info together...")
             
             # pull joined aus
@@ -265,7 +274,7 @@ mod_join_aus_server <- function(id, tadat){
         
         #### 5. qc checks ####
         
-        # message
+        # log to command line
         message("Run QC checks...")
         
         # check duplicates
@@ -301,44 +310,97 @@ mod_join_aus_server <- function(id, tadat){
         shiny::incProgress(amount = 1/n_inc, detail = "Completed QC checks...")
         Sys.sleep(0.25)
         
-        #### 6. display data in table ####
+        #### 6. display summary ####
         
-        # show table
+        # render summary
+        output$join_summary <- shiny::renderText({
+          # if file was selected
+          if (is.null(df_mltoau_review_v2)) {
+            
+            # print
+            "Results have not been joined."
+          }
+          
+          # 
+          else {
+            # count regional crosswalk matched sites
+            num_cross_match <- length(unique(df_mltoau_review_v2$MonitoringLocationIdentifier[df_mltoau_review_v2$AU_Info_Source == "Regional Crosswalk Table"]))
+            
+            # count attains sites
+            num_attains_match <- length(unique(df_mltoau_review_v2$MonitoringLocationIdentifier[df_mltoau_review_v2$AU_Info_Source == "TADA ATTAINS Geospatial"]))
+            
+            # count unmatched sites
+            num_unmatch <- length(unique(df_mltoau_review_v2$MonitoringLocationIdentifier[df_mltoau_review_v2$AU_Info_Source == "No Match; Manual Match Needed"]))
+              
+            # total sites
+            num_total <- length(unique(df_mltoau_review_v2$MonitoringLocationIdentifier))
+            
+            # print
+            paste0(
+              "There are ", num_total, " unique monitoring locations.\n",
+              "Regional crosswalk matched: ", num_cross_match, " sites\n",
+              "ATTAINS matched: ", num_attains_match, " sites\n",
+              "Unmatched (needs manual review): ", num_unmatch, " sites \n"
+            )
+          }
+        })
+        
+        #### 7. display data in table ####
+        
+        # show simple table (no selection)
         output$df_results_dt <- DT::renderDT({
           
-          # qc check for empty data
-          if (is.null(df_mltoau_review_v2)) {
-            return(NULL)
-          }
+          # save event reactive object
+          df_data <- df_mltoau_review_v2
           
-          # initialize ml id choice filter
-          df_mlid_choice <- df_mltoau_review_v2
+          # save to tadat
+          # tadat$??? <- df_mltoau_review_v2
           
-          # if ml id is chosen then filter table to that value
-          if (input$mlid_choice != "") {
-            
-            # revise ml id choice
-            df_mlid_choice <- df_mltoau_review_v2 |>
-              dplyr::filter(MonitoringLocationIdentifier == input$mlid_choice)
-          }
-          
-          # Return the filtered dataframe
-          return(df_mlid_choice)
-          
-        },
-        selection = "single",
-        filter = "top",
-        options = list(scrollX = TRUE,
-                       pageLength = 5,
-                       lengthMenu = c(5, 10, 25, 50, 100),
-                       autoWidth = TRUE)
-        )
+          },
+          filter = "top",
+          options = list(scrollX = TRUE, pageLength = 5,
+                         lengthMenu = c(5, 10, 25, 50, 100),
+                         autoWidth = TRUE)
+          )
+        
+        # show table
+        # output$df_results_dt <- DT::renderDT({
+        #   
+        #   # qc check for empty data
+        #   if (is.null(df_mltoau_review_v2) & input$mlid_choice == "") {
+        #     # return
+        #     return(NULL)
+        #   }
+        #   
+        #   # if data is there any no ml selected
+        #   else if (!is.null(df_mltoau_review_v2) & input$mlid_choice == "") {
+        #     # return
+        #     return(df_mltoau_review_v2)
+        #   }
+        #   
+        #   # if data is there an ml is selected
+        #   else {
+        #     # revise ml id choice
+        #     df_mlid_choice <- df_mltoau_review_v2 |>
+        #       dplyr::filter(MonitoringLocationIdentifier %in% c(input$mlid_choice))
+        #     
+        #     # return
+        #     return(df_mlid_choice)
+        #   }
+        # },
+        # selection = "single",
+        # filter = "top",
+        # options = list(scrollX = TRUE,
+        #                pageLength = 5,
+        #                lengthMenu = c(5, 10, 25, 50, 100),
+        #                autoWidth = TRUE)
+        # )
         
         # increment progress bar, and update the detail text
         shiny::incProgress(amount = 1/n_inc, detail = "Showed table...")
         Sys.sleep(0.25)
         
-        #### 7. display data map ####
+        #### 8. display data map ####
         
         # show map
         output$join_map <- leaflet::renderLeaflet({
@@ -383,7 +445,7 @@ mod_join_aus_server <- function(id, tadat){
                       title = "Site Types")
         })
         
-        #### 8. zoomed map ####
+        #### 9. zoomed map ####
         
         # map that filters to single location
         shiny::observeEvent(input$mlid_choice, {
@@ -407,7 +469,7 @@ mod_join_aus_server <- function(id, tadat){
         shiny::incProgress(amount = 1/n_inc, detail = "Showed zoomed map...")
         Sys.sleep(0.25)
         
-        #### 9. save results ####
+        #### 10. save results ####
         # append to tadat
         tadat$df_for_review <- df_mltoau_review_v2
         
