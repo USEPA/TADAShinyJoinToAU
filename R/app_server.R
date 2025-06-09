@@ -20,7 +20,7 @@ app_server <- function(input, output, session) {
   # modules
   mod_load_file_server("load_file_1", tadat)
   mod_join_aus_server("join_aus_1", tadat)
-  mod_download_result_server("download_result_1", tadat)
+  # mod_download_result_server("download_result_1", tadat)
   
   # disable other tabs upon start
   shinyjs::disable(selector = '.nav li a[data-value="Join"]')
