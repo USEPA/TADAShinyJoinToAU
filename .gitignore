@@ -34,3 +34,4 @@
 
 # ignore scratch folder
 scratch/
+.quarto
