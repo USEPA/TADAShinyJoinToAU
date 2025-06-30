@@ -26,7 +26,7 @@ attachment::att_amend_desc()
 # usethis::use_package("httr")
 # usethis::use_package("purrr")
 # usethis::use_package("readxl")
-# usethis::use_package("zip")
+usethis::use_package("zip")
 usethis::use_package("gotop")
 usethis::use_package("utils")
 usethis::use_package("shinyjs")
@@ -34,6 +34,7 @@ usethis::use_package("dplyr")
 usethis::use_package("sf")
 usethis::use_package("leaflet")
 usethis::use_package("EPATADA")
+usethis::use_package("readr")
 
 ## Add modules ----
 ## Create a module infrastructure in R/
