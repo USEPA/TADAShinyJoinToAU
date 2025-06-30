@@ -125,8 +125,12 @@ mod_load_file_server <- function(id, tadat){
       
       # define required columns
       required_cols <- c("MonitoringLocationIdentifier",
+                         "MonitoringLocationTypeName",
                          "LatitudeMeasure",
-                         "LongitudeMeasure")
+                         "LongitudeMeasure",
+                         "TADA.MonitoringLocationIdentifier",
+                         "TADA.LatitudeMeasure",
+                         "TADA.LongitudeMeasure")
       
       # get missing columns
       missing_cols <- setdiff(required_cols, names(df_ml_input))
