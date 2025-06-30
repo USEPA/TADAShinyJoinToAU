@@ -93,7 +93,7 @@ mltoau_crosswalk_simple <- mltoau_crosswalk_raw |>
   select(MonitoringLocationIdentifier, AssessmentUnitIdentifier)
 
 # save data to package
-usethis::use_data(mltoau_crosswalk_raw, overwrite = TRUE)
+# usethis::use_data(mltoau_crosswalk_raw, overwrite = TRUE)
 usethis::use_data(mltoau_crosswalk_simple, overwrite = TRUE)
 
 # ---- au to use crosswalk from attains ----
@@ -296,7 +296,7 @@ raw_file_name <- paste0("r8_attains_autouse_long_", current_date , ".csv")
 simple_file_name <- paste0("r8_attains_autouse_long_simple_", current_date , ".csv")
 
 # export
-write_csv(x = autouse_crosswalk_raw, path = here::here("data-raw", raw_file_name))
+# write_csv(x = autouse_crosswalk_raw, path = here::here("data-raw", raw_file_name))
 write_csv(x = autouse_crosswalk_simple, path = here::here("data-raw", simple_file_name))
 
 # for now just use ben's file b/c api is down
@@ -310,8 +310,12 @@ write_csv(x = autouse_crosswalk_simple, path = here::here("data-raw", simple_fil
 # write_csv(x = unique_r8_uses_for_hannah, file = "C:/Users/sheila.saia/OneDrive - Tetra Tech, Inc/proj 2025 epa region8/5_Work/Task_5/ATTAINS_AU_Info/Output_Data/ATTAINS_Output_20250602/unique_r8_uses_for_hannah.csv")
 
 # save to package
-usethis::use_data(autouse_crosswalk_raw, overwrite = TRUE)
+# usethis::use_data(autouse_crosswalk_raw, overwrite = TRUE)
 usethis::use_data(autouse_crosswalk_simple, overwrite = TRUE)
+
+
+# ---- add documentation ----
+
 
 
 # ---- old code: merge all crosswalks into one ----
