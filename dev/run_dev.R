@@ -15,6 +15,12 @@ devtools::document()
 
 # Run check often to catch and fix warnings and notes
 devtools::check()
+# if keep getting quarto issues can run
+# Sys.setenv(TMPDIR = tempdir())
+# devtools::check()
+# or can also run
+# devtools::check(document = FALSE)
+# this will ignore documents for data 
 
 # Alternatively, you can use golem to load TADAShiny
 # Detach all loaded packages and clean your environment

@@ -78,6 +78,7 @@ usethis::use_data_raw("mltoau_crosswalk")
 # see mltoau_crosswalk.R script in data-raw for subsequent steps
 # see https://brouwern.github.io/biodata/articles/x-adding_raw_data.html
 # see https://engineering-shiny.org/common-app-caveats.html?q=use_data_raw#reading-data
+# revised this to add other datsets...see mltoau_crosswalk.R
 
 # modules: (1) load file, (2) join aus
 # 15. create module to load file
@@ -105,7 +106,7 @@ golem::add_module(name = "download_result", with_test = TRUE, export = FALSE)
 # 2. defining namespaces
 # 3. versioning...
 
-
+# 22. 
 
 # ---- reactive list ----
 # following "stratégie du petit r" described in:
@@ -124,20 +125,33 @@ golem::add_module(name = "download_result", with_test = TRUE, export = FALSE)
 # mod_join_aus
 # inputs: "join_calc", "mlid_choice", 
 # outputs: "join_map", "df_results_dt"
-# tadat: "df_for_review"
+# tadat: "df_mltoau_for_review", "df_autouse_for_review"
 
 # mod_download_results
 # inputs: none
 # outputs: "download_results", 
-# tadat: none
+# tadat: "temp_dir"
 
 
 # ---- code testing ----
-
 library(fs)
-test_file_path <- fs::path_tidy("C:/Users/sheila.saia/OneDrive - Tetra Tech, Inc/proj 2025 epa region8/5_Work/join2au_app/example_data_from_ben/TADA_Utah_Nutrients_trimsubset2_20250407.csv")
+library(devtools)
+library(tidyverse)
+
+# test_file_path <- fs::path_tidy("C:/Users/sheila.saia/OneDrive - Tetra Tech, Inc/proj 2025 epa region8/5_Work/join2au_app/example_data_from_ben/TADA_Utah_Nutrients_trimsubset2_20250407.csv")
+test_file_path <- fs::path_tidy("C:/Users/sheila.saia/OneDrive - Tetra Tech, Inc/proj 2025 epa region8/5_Work/join2au_app/Example_Data_ND/ND_Spirit.csv")
 df_ml_data <- utils::read.delim(test_file_path,
                               header = TRUE,
                               sep = ",",
                               stringsAsFactors = FALSE,
                               na.strings = c("", "NA"))
+df_ml_input <- df_ml_data
+
+devtools::load_all()
+
+df_mltoau_cw <-TADAShinyJoinToAU::mltoau_crosswalk_simple
+df_autouse_cw <- TADAShinyJoinToAU::autouse_crosswalk_simple
+
+# ND spirit lake attains pull for testing
+# write_csv(df_ml_unmatched_attains, fs::path_tidy("C:/Users/sheila.saia/OneDrive - Tetra Tech, Inc/Desktop/r8_app_testing/df_ml_unmatched_attains.csv"))
+df_ml_unmatched_attains <- read_csv(fs::path_tidy("C:/Users/sheila.saia/OneDrive - Tetra Tech, Inc/Desktop/r8_app_testing/df_ml_unmatched_attains.csv"))
