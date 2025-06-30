@@ -26,7 +26,7 @@ app_server <- function(input, output, session) {
   shinyjs::disable(selector = '.nav li a[data-value="Join"]')
   
   # save session info to tadat
-  job_id <- paste0("ts", format(Sys.time(), "%y%m%d%H%M%S"))
+  job_id <- paste0("ts", format(Sys.time(), "%Y%m%d%H%M%S"))
   tadat$default_outfile <- paste0("tada_output_", job_id)
   tadat$job_id <- job_id
 }
