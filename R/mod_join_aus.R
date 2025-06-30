@@ -31,6 +31,9 @@ mod_join_aus_ui <- function(id) {
     # start fluidrow
     shiny::fluidRow(
       
+      # use shinyjs
+      shinyjs::useShinyjs(),
+      
       # left column prompts
       column(
         width = 4,
@@ -54,18 +57,32 @@ mod_join_aus_ui <- function(id) {
         htmltools::br(),
         leaflet::leafletOutput(outputId = ns("join_map"), width = "90%"),
         htmltools::hr(),
-        htmltools::h3("Table"),
+        htmltools::h3("ML to AU Table"),
         htmltools::p("Scroll, search, or sort the table below to explore the joined data. If no table is visible, you will need to click on the 'Join AUs and Uses' button in Step 2a."),
         htmltools::br(),
-        DT::dataTableOutput(outputId = ns("df_results_dt"))
+        DT::dataTableOutput(outputId = ns("df_ml_results_dt")),
+        htmltools::br(),
+        htmltools::h3("AU to Use Table"),
+        htmltools::p("Scroll, search, or sort the table below to explore the joined data. If no table is visible, you will need to click on the 'Join AUs and Uses' button in Step 2a."),
+        htmltools::br(),
+        DT::dataTableOutput(outputId = ns("df_au_results_dt"))
       ),
+      
+      # download bar
+      column(
+        width = 4,
+        mod_download_result_ui("download_result_1"),
+        htmltools::br()
+      )
     )
   )
 }
 
 # load crosswalk tables
-df_mltoau_cw <-TADAShinyJoinToAU::mltoau_crosswalk_simple
-df_autouse_cw <- TADAShinyJoinToAU::autouse_crosswalk_simple
+# df_mltoau_cw <-TADAShinyJoinToAU::mltoau_crosswalk_simple
+# df_autouse_cw <- TADAShinyJoinToAU::autouse_crosswalk_simple
+# df_mltoau_cw <- mltoau_crosswalk_simple
+# df_autouse_cw <- autouse_crosswalk_simple
 
 # source any other info
 # see tadashiny app mod_query_data.R dev branch for ideas
@@ -80,6 +97,13 @@ mod_join_aus_server <- function(id, tadat){
   moduleServer(id, function(input, output, session){
     # get module session id
     ns <- session$ns
+    
+    #### 0. download button ####
+    
+    # download
+    mod_download_result_server("download_result_1", tadat)
+    
+    #### 1. join au button ####
     
     # join au button
     shiny::observeEvent(input$join_calc, {
@@ -103,7 +127,7 @@ mod_join_aus_server <- function(id, tadat){
           return(NULL)
         }
         
-        #### 1. join crosswalk ####
+        #### 2. join crosswalk ####
     
         # increment progress bar, and update the detail text
         shiny::incProgress(amount = 1/n_inc, detail = "Join initialized...")
@@ -111,7 +135,7 @@ mod_join_aus_server <- function(id, tadat){
         
         # join ml id's to aus
         df_join_au <- df_ml_data |>
-          dplyr::left_join(df_mltoau_cw, by = ("MonitoringLocationIdentifier"))
+          dplyr::left_join(mltoau_crosswalk_simple, by = ("MonitoringLocationIdentifier"))
         
         # increment progress bar, and update the detail text
         shiny::incProgress(amount = 1/n_inc, detail = "Joined crosswalk...")
@@ -131,7 +155,7 @@ mod_join_aus_server <- function(id, tadat){
                           "ATTAINS.waterTypeCode", # this module
                           "R8.AssessmentUnitIdentifier") # # this module
         
-        #### 2. filter ml id's that match to an au ####
+        #### 3. filter ml id's that match to an au ####
         
         # filter out ml id's that matched an au and tidy df
         df_ml_matched <- df_join_au |>
@@ -157,7 +181,7 @@ mod_join_aus_server <- function(id, tadat){
         shiny::incProgress(amount = 1/n_inc, detail = "Checked matched AUs...")
         Sys.sleep(0.25)
         
-        #### 3. filter ml id's that don't match an au ####
+        #### 4. filter ml id's that don't match an au ####
       
         # filter out ml id's that do not have a matched au
         df_ml_unmatched <- df_join_au |>
@@ -167,7 +191,7 @@ mod_join_aus_server <- function(id, tadat){
         shiny::incProgress(amount = 1/n_inc, detail = "Checked unmatched AUs...")
         Sys.sleep(0.25)
         
-        #### 4. create ml to au table for review ####
+        #### 5. create ml to au table for review ####
         
         # if there is unmatched data pull spatial data from ATTAINS
         if(dim(df_ml_unmatched)[1] > 0) {
@@ -370,7 +394,7 @@ mod_join_aus_server <- function(id, tadat){
         }
         
         
-        #### 5. qc checks ####
+        #### 6. qc checks ####
         
         # log to command line
         message("Run QC checks...")
@@ -402,7 +426,7 @@ mod_join_aus_server <- function(id, tadat){
                                                                            TRUE ~ "ERROR")) |>
           dplyr::ungroup() |>
           dplyr::rowwise() |>
-          dplyr::mutate(FLAG_Logic = sum(dplyr::any(!is.na(FLAG_MonitoringLocationTypeName), !is.na(FLAG_Duplicate))) + sum(any(Source == "No Match; Manual Match Needed"))) |>
+          dplyr::mutate(FLAG_Logic = sum(any(!is.na(FLAG_MonitoringLocationTypeName), !is.na(FLAG_Duplicate))) + sum(any(Source == "No Match; Manual Match Needed"))) |>
           dplyr::ungroup() |>
           dplyr::mutate(Needs_Review = dplyr::case_when(Needs_Review == "No" & FLAG_Logic == 0 ~ "No",
                                                         Needs_Review == "No" & FLAG_Logic >= 1 ~ "Yes",
@@ -433,7 +457,7 @@ mod_join_aus_server <- function(id, tadat){
         Sys.sleep(0.25)
         
         
-        #### 6. create au to use table for review ####
+        #### 7. create au to use table for review ####
         
         # select au's from step 4
         df_ml_sel_au <- df_mltoau_review_v2 |>
@@ -442,7 +466,7 @@ mod_join_aus_server <- function(id, tadat){
         
         # join to crosswalk
         df_autouse_review <- df_ml_sel_au |>
-          dplyr::left_join(df_autouse_cw, by = c("JoinToAU.AssessmentUnitIdentifier" = "AssessmentUnitIdentifier"),
+          dplyr::left_join(autouse_crosswalk_simple, by = c("JoinToAU.AssessmentUnitIdentifier" = "AssessmentUnitIdentifier"),
                     relationship = "many-to-many") |>
           dplyr::arrange(JoinToAU.AssessmentUnitIdentifier, ATTAINS.UseName) |>
           dplyr::distinct()
@@ -452,7 +476,7 @@ mod_join_aus_server <- function(id, tadat){
         Sys.sleep(0.25)
         
         
-        #### 7. display summary ####
+        #### 8. display summary ####
         
         # render summary
         output$join_summary <- shiny::renderText({
@@ -495,10 +519,10 @@ mod_join_aus_server <- function(id, tadat){
           }
         })
         
-        #### 8. display data in table ####
+        #### 9. display data in tables ####
         
-        # show simple table (no selection)
-        output$df_results_dt <- DT::renderDT({
+        # show ml to use data as simple table (no selection)
+        output$df_ml_results_dt <- DT::renderDT({
           
           # save event reactive object
           df_data <- df_mltoau_review_v2
@@ -510,11 +534,25 @@ mod_join_aus_server <- function(id, tadat){
                          autoWidth = TRUE)
           )
         
+        # show au to use data as simple table (no selection)
+        output$df_au_results_dt <- DT::renderDT({
+          
+          # save event reactive object
+          df_data <- df_autouse_review
+          
+        },
+        filter = "top",
+        options = list(scrollX = TRUE, pageLength = 5,
+                       lengthMenu = c(5, 10, 25, 50, 100),
+                       autoWidth = TRUE)
+        )
+        
         # increment progress bar, and update the detail text
-        shiny::incProgress(amount = 1/n_inc, detail = "Showed table...")
+        shiny::incProgress(amount = 1/n_inc, detail = "Showed tables...")
         Sys.sleep(0.25)
         
-        #### 9. display data map ####
+        
+        #### 10. display data map ####
         
         # show map
         output$join_map <- leaflet::renderLeaflet({
@@ -559,7 +597,7 @@ mod_join_aus_server <- function(id, tadat){
                       title = "Site Types")
         })
         
-        #### 10. zoomed map ####
+        #### 11. zoomed map ####
         
         # map that filters to single location
         # shiny::observeEvent(input$mlid_choice, {
@@ -583,10 +621,11 @@ mod_join_aus_server <- function(id, tadat){
         # shiny::incProgress(amount = 1/n_inc, detail = "Showed zoomed map...")
         # Sys.sleep(0.25)
         
-        #### 11. save results ####
+        #### 12. save results ####
+
         # append to tadat
         tadat$df_mltoau_for_review <- df_mltoau_review_v2
-        tadat$df_autouse_for_review <- df_autouse_for_review
+        tadat$df_autouse_for_review <- df_autouse_review
         
       }) # with progress
     }) # observe event

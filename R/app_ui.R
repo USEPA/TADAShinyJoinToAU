@@ -38,13 +38,13 @@ app_ui <- function(request) {
         appear = 100 # number of pixels before appearance
       ),
       
-      # adds development banner
+      # add development banner
       # HTML("<div id='eq-disclaimer-banner' class='padding-1 text-center text-white bg-secondary-dark'><strong>EPA development environment:</strong> The
       # content on this page is not production ready. This site is being used
       # for <strong>development</strong> and/or <strong>testing</strong> purposes
       # only.</div>"),
       
-      # adds epa header html from here: https://www.epa.gov/themes/epa_theme/pattern-lab/patterns/pages-standalone-template/pages-standalone-template.rendered.html
+      # add epa header html from here: https://www.epa.gov/themes/epa_theme/pattern-lab/patterns/pages-standalone-template/pages-standalone-template.rendered.html
       shiny::includeHTML(app_sys("app/www/header.html")),
       shinyjs::useShinyjs(),
       shinyjs::inlineCSS(css),
@@ -72,10 +72,13 @@ app_ui <- function(request) {
       # add horizontal line
       # htmltools::hr(),
       
-      # adds 'TADA Working Summary and download buttons above the app footer
-      # mod_TADA_summary_ui("TADA_summary_1"),
+      # add download button above footer
+      # mod_download_result_ui("download_result_1"),
       
-      # adds epa footer html
+      # add break
+      # htmltools::br(),
+      
+      # add epa footer html
       shiny::includeHTML(app_sys("app/www/footer.html"))
     ) #,
       
