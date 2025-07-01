@@ -23,20 +23,33 @@ mod_load_file_ui <- function(id) {
       # left column file load prompts
       column(
         width = 4,
-        htmltools::h3("a. Load file"),
-        htmltools::p("You can download a file with Monitoring location identifiers and associated chemistry data from the Water Quality Portal (WQP) or use the TADAShinyApp at (https://rconnect-public.epa.gov/TADAShiny/). Only comma-separated or tab-separated files can be loaded (i.e., .csv or .tsv)."),
-        htmltools::p("The file loaded here will be used for all subsequent steps."),
-        htmltools::p(paste0("Note: Loaded file sizes are limited to a maximum size of ", get_golem_config("MB_LIMIT"), " MB.")),
-        htmltools::h3("b. Select file parameters"),
+        htmltools::strong("Purpose"),
+        htmltools::p("This app joins monitoring locations (MLs) to assessment
+        units (AUs) which can be exported. It also outputs an AU to designated 
+        use table. In this tab, you load an external file before proceeding."),
+        htmltools::strong("Instructions"),
+        htmltools::p("The input file for this app is a long-format data file with
+        MLs and water quality data. You can download a file with MLs
+                     and associated chemistry data from the Water Quality Portal
+                     or use the", htmltools::a("TADAShinyApp."
+                                               , href = "https://rconnect-public.epa.gov/TADAShiny/"
+                                               , target = "_blank")),
+        htmltools::p("The file loaded here will be used for all subsequent steps.
+        Only comma-separated or tab-separated files can be loaded (i.e., .csv or 
+                     .tsv)."),
+        htmltools::p(paste0("Note: Loaded file sizes are limited to a 
+                            maximum size of ", get_golem_config("MB_LIMIT")
+                            , " MB.")),
+        htmltools::h3("Select file parameters"),
         shiny::radioButtons(
           inputId = ns("separator"),
-          label = "Choose file separator:",
+          label = "1a. Choose file separator:",
           choices = c(Comma = ",", Tab = "\t"),
           selected = ","
         ),
         shiny::fileInput(
           inputId = ns("input_file"),
-          label = "Choose file to load:",
+          label = "1b. Choose file to load:",
           width = "90%",
           placeholder = "No file selected.",
           multiple = FALSE,
@@ -53,10 +66,12 @@ mod_load_file_ui <- function(id) {
       # right column table
       column(
         width = 8,
-        htmltools::h3("c. Loaded file summary"),
+        htmltools::h3("Input file summary"),
+        htmltools::p("Summary of loaded file (blank until file is loaded)."),
         shiny::verbatimTextOutput(outputId = ns("input_summary"), placeholder = TRUE),
-        htmltools::h3("d. Preview loaded file"),
-        htmltools::p("Scroll, search, or sort the table below to explore previewed the loaded file."),
+        htmltools::h3("Input data Preview"),
+        htmltools::p("Interactive table of input dataset (blank until file 
+        is loaded). Scroll, search, or sort the table below to explore."),
         # htmltools::br(),
         DT::dataTableOutput(outputId = ns("df_import_dt"))
       )

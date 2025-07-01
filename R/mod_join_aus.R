@@ -26,7 +26,7 @@ mod_join_aus_ui <- function(id) {
   tagList(
     
     # header
-    htmltools::h2("Join Monitoring Locations to AUs"),
+    htmltools::h2("2. Join Monitoring Locations to AUs"),
     
     # start fluidrow
     shiny::fluidRow(
@@ -37,53 +37,73 @@ mod_join_aus_ui <- function(id) {
       # left column prompts
       column(
         width = 4,
-        htmltools::h3("Join Monitoring Locations to AUs and Uses"),
-        htmltools::p("Click on the button below to join monitoring locations to AUs and their associated uses."),
+        htmltools::strong("Purpose"),
+        htmltools::p("This app joins monitoring locations (MLs) to assessment
+        units (AUs) which can be exported. It also outputs an AU to designated 
+        use table. In this tab, you first join the MLs to AUs, then review the 
+                     results, and lastly, download the data for external review."),
+        htmltools::strong("Instructions"),
+        htmltools::p("Click on the button below to join MLs to AUs and their 
+                     designated uses (Step 2a). Once the process is completed, 
+                     summary tables and a map will be generated (see right). 
+                     Lastly, the results will be downloaded for external review 
+                     (Step 2b)."),
+        htmltools::strong("Review"), 
+        htmltools::p("After downloading, please review the tables for accuracy 
+                     before proceeding to the analysis module. Pay particular 
+                     attention to the 'Needs_Review', 'Source', and 'FLAG' 
+                     fields. The user needs to confirm that the correct AU is 
+                     assigned to each ML (JoinToAU.AssessmentUnitIdentifier 
+                     field)."),
+        htmltools::h3("2a. Join Monitoring Locations to AUs and Uses"),
+        htmltools::p("Click on the button below."),
         shiny::actionButton(
           inputId = ns("join_calc"),
           label = "Join AUs and Uses",
           style = "color: #fff; background-color: #337ab7; border-color: #2e6da4"
         ),
-        htmltools::h3("Download results"),
-        htmltools::p("Click on the button below to download the join to AU module results for review."),
+        htmltools::h3("2b. Download results"),
+        htmltools::p("Click on the button below."),
+        htmltools::strong("The button will be disabled until the join is 
+                          complete (Step 2a)."),
         shinyjs::disabled(shiny::downloadButton(
           outputId = ns("download_results"),
           label = "Download Results (.zip)",
           style = "color: #fff; background-color: #337ab7; border-color: #2e6da4") # download button
         ) # shinyjs
-      ),
+      ), # END ~ column
       
       # right column map and table
       column(
         width = 8,
         htmltools::h3("Join summary"),
+        htmltools::p("Below is a numerical summary of the join process 
+                     (blank until join is completed)."),
         shiny::verbatimTextOutput(outputId = ns("join_summary"), placeholder = TRUE),
-        htmltools::h3("View joined results"),
-        htmltools::h3("Map"),
-        htmltools::p("Click on the site pin to view the SiteID. If no table is visible, you will need to click on the 'Join AUs and Uses' button in Step 2a."),
+        htmltools::h3("Explore results"),
+        htmltools::p("Below are tabular and graphical results of the join
+                     (blank until join is completed)."),
+        htmltools::h3("Site Map"),
+        htmltools::p("Map of sites in join organized by join results.
+                     Click on the site pin to view the SiteID."),
         htmltools::br(),
         leaflet::leafletOutput(outputId = ns("join_map"), width = "90%"),
         htmltools::hr(),
         htmltools::h3("ML to AU Table"),
-        htmltools::p("Scroll, search, or sort the table below to explore the joined data. If no table is visible, you will need to click on the 'Join AUs and Uses' button in Step 2a."),
+        htmltools::p("Summary of ML to AU join. Scroll, search, or sort the 
+                     table below to explore."),
         htmltools::br(),
         DT::dataTableOutput(outputId = ns("df_ml_results_dt")),
         htmltools::br(),
         htmltools::h3("AU to Use Table"),
-        htmltools::p("Scroll, search, or sort the table below to explore the joined data. If no table is visible, you will need to click on the 'Join AUs and Uses' button in Step 2a."),
+        htmltools::p("Summary of AU to Use join. Scroll, search, or sort the 
+                     table below to explore."),
         htmltools::br(),
         DT::dataTableOutput(outputId = ns("df_au_results_dt"))
-      ),
-      
-      # download bar
-      column(
-        width = 4,
-        mod_download_result_ui("download_result_1"),
-        htmltools::br()
-      )
-    )
-  )
-}
+      ) # END ~ column
+    ) # END ~ shiny::fluidRow
+  ) # END ~ tagList
+} # END ~ function
 
 # load crosswalk tables
 # df_mltoau_cw <-TADAShinyJoinToAU::mltoau_crosswalk_simple
