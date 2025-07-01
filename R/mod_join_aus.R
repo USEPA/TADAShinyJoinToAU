@@ -26,7 +26,7 @@ mod_join_aus_ui <- function(id) {
   tagList(
     
     # header
-    htmltools::h2("2. Join Monitoring Locations to AUs"),
+    htmltools::h2("Join Monitoring Locations to AUs"),
     
     # start fluidrow
     shiny::fluidRow(
@@ -37,21 +37,28 @@ mod_join_aus_ui <- function(id) {
       # left column prompts
       column(
         width = 4,
-        htmltools::h3("a. Join Monitoring Locations to AUs and Uses"),
+        htmltools::h3("Join Monitoring Locations to AUs and Uses"),
         htmltools::p("Click on the button below to join monitoring locations to AUs and their associated uses."),
         shiny::actionButton(
           inputId = ns("join_calc"),
           label = "Join AUs and Uses",
           style = "color: #fff; background-color: #337ab7; border-color: #2e6da4"
         ),
+        htmltools::h3("Download results"),
+        htmltools::p("Click on the button below to download the join to AU module results for review."),
+        shinyjs::disabled(shiny::downloadButton(
+          outputId = ns("download_results"),
+          label = "Download Results (.zip)",
+          style = "color: #fff; background-color: #337ab7; border-color: #2e6da4") # download button
+        ) # shinyjs
       ),
       
       # right column map and table
       column(
         width = 8,
-        htmltools::h3("c. Join summary"),
+        htmltools::h3("Join summary"),
         shiny::verbatimTextOutput(outputId = ns("join_summary"), placeholder = TRUE),
-        htmltools::h3("d. View joined results"),
+        htmltools::h3("View joined results"),
         htmltools::h3("Map"),
         htmltools::p("Click on the site pin to view the SiteID. If no table is visible, you will need to click on the 'Join AUs and Uses' button in Step 2a."),
         htmltools::br(),
@@ -97,11 +104,6 @@ mod_join_aus_server <- function(id, tadat){
   moduleServer(id, function(input, output, session){
     # get module session id
     ns <- session$ns
-    
-    #### 0. download button ####
-    
-    # download
-    mod_download_result_server("download_result_1", tadat)
     
     #### 1. join au button ####
     
@@ -233,7 +235,7 @@ mod_join_aus_server <- function(id, tadat){
               type = "message",
               duration = 2
             )
-          }
+          } # END ~ loop through sites
           
           # increment progress bar, and update the detail text
           shiny::incProgress(amount = 1/n_inc, detail = "Pulled ATTAINS spatial data for unmatched AUs...")
@@ -626,6 +628,41 @@ mod_join_aus_server <- function(id, tadat){
         # append to tadat
         tadat$df_mltoau_for_review <- df_mltoau_review_v2
         tadat$df_autouse_for_review <- df_autouse_review
+        
+        #### 13. download button ####
+        
+        # Save data frames to temporary files
+        output$download_results <- downloadHandler(
+          filename = function() {
+            paste0("AU_Join_Results_"
+                   , format(Sys.time(), "%Y%m%d_%H%M%S")
+                   , ".zip")
+          },
+          content = function(file) {
+            # Define file names for inside the ZIP
+            file1 <- "MLtoAU_for_Review.csv"
+            file2 <- "AUtoUse_for_Review.csv"
+            
+            # Create temp files
+            tmpdir <- tempdir()
+            tmpfile1 <- file.path(tmpdir, file1)
+            tmpfile2 <- file.path(tmpdir, file2)
+            zipfile <- file.path(tmpdir, "results.zip")
+            
+            # Write data frames to CSV
+            utils::write.csv(df_mltoau_review_v2, tmpfile1, row.names = FALSE)
+            utils::write.csv(df_autouse_review, tmpfile2, row.names = FALSE)
+            
+            # Zip them
+            utils::zip(zipfile = zipfile, files = c(tmpfile1, tmpfile2)
+                       , flags = "-j")
+            
+            # Copy zip to final destination
+            file.copy(zipfile, file)
+          }
+        ) # END ~ downloadHandler
+        
+        shinyjs::enable("download_results")
         
       }) # with progress
     }) # observe event
