@@ -9,6 +9,7 @@
 library(tidyverse)
 library(readxl)
 library(here)
+library(usethis)
 
 # load ml to au data
 # this file was compiled from ben with feedback from EPA and the states
@@ -94,7 +95,7 @@ mltoau_crosswalk_simple <- mltoau_crosswalk_raw |>
 
 # save data to package
 # usethis::use_data(mltoau_crosswalk_raw, overwrite = TRUE)
-usethis::use_data(mltoau_crosswalk_simple, overwrite = TRUE)
+# usethis::use_data(mltoau_crosswalk_simple, overwrite = TRUE)
 
 # ---- au to use crosswalk from attains ----
 # this code was originally written by ben block
@@ -311,9 +312,12 @@ write_csv(x = autouse_crosswalk_simple, path = here::here("data-raw", simple_fil
 
 # save to package
 # usethis::use_data(autouse_crosswalk_raw, overwrite = TRUE)
-usethis::use_data(autouse_crosswalk_simple, overwrite = TRUE)
+# usethis::use_data(autouse_crosswalk_simple, overwrite = TRUE)
 
-
+# Save internally to R/sysdata.rda
+# https://r-pkgs.org/data.html#sec-data-sysdata
+usethis::use_data(autouse_crosswalk_simple, mltoau_crosswalk_simple
+                  , overwrite = TRUE, internal = TRUE)
 # ---- add documentation ----
 
 
