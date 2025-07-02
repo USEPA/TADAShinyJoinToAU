@@ -23,6 +23,7 @@ Imports:
     gotop,
     htmltools,
     leaflet,
+    pkgload,
     readr,
     sf,
     shiny,
