@@ -28,6 +28,7 @@ Imports:
     sf,
     shiny,
     shinyjs,
+    stats,
     tidyr,
     utils,
     zip

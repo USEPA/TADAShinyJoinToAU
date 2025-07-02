@@ -482,7 +482,7 @@ mod_join_aus_server <- function(id, tadat){
         # select au's from step 4
         df_ml_sel_au <- df_mltoau_review_v2 |>
           dplyr::select(JoinToAU.AssessmentUnitIdentifier) |>
-          na.omit()
+          stats::na.omit()
         
         # join to crosswalk
         df_autouse_review <- df_ml_sel_au |>

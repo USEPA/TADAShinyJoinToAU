@@ -36,6 +36,7 @@ usethis::use_package("sf")
 usethis::use_package("leaflet")
 usethis::use_package("EPATADA")
 usethis::use_package("readr")
+usethis::use_package("stats")
 
 ## Add modules ----
 ## Create a module infrastructure in R/
