@@ -28,6 +28,7 @@ Imports:
     sf,
     shiny,
     shinyjs,
+    tidyr,
     utils,
     zip
 Encoding: UTF-8
