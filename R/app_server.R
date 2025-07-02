@@ -27,6 +27,6 @@ app_server <- function(input, output, session) {
   
   # save session info to tadat
   job_id <- paste0("ts", format(Sys.time(), "%Y%m%d%H%M%S"))
-  tadat$default_outfile <- paste0("tada_output_", job_id)
+  tadat$default_outfile <- paste0("tada_jointoau_output_", job_id)
   tadat$job_id <- job_id
 }

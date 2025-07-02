@@ -8,14 +8,12 @@
 #'
 #' @importFrom shiny NS tagList 
 
-# TODO need to move shinyjs from ui down to here for download button
 # TODO how to show messages() to the developer vs notifications to the ui?
-# TODO TADA_GetATTAINS gives an empty df back if site is not in ATTAINS, add case to handle this
 # TODO what to do if required columns aren't there... (statement about TADAShiny?)
 # TODO check w/ epa: need to join based on TADA.MLID not just MLID?
 # TODO check w/ epa: seeing that same 6 uses are coming up for all sites
 # TODO check w/ epa: there are a lot of ML ID's with missing/unresovled AU ID info
-# TODO functionalize code in server
+# TODO functional-ize code in server
 
 
 mod_join_aus_ui <- function(id) {
@@ -551,7 +549,8 @@ mod_join_aus_server <- function(id, tadat){
           
           },
           filter = "top",
-          options = list(scrollX = TRUE, pageLength = 5,
+          options = list(scrollX = TRUE,
+                         pageLength = 5,
                          lengthMenu = c(5, 10, 25, 50, 100),
                          autoWidth = TRUE)
           )
@@ -564,7 +563,8 @@ mod_join_aus_server <- function(id, tadat){
           
         },
         filter = "top",
-        options = list(scrollX = TRUE, pageLength = 5,
+        options = list(scrollX = TRUE,
+                       pageLength = 5,
                        lengthMenu = c(5, 10, 25, 50, 100),
                        autoWidth = TRUE)
         )
@@ -652,30 +652,70 @@ mod_join_aus_server <- function(id, tadat){
         #### 13. download button ####
         
         # Save data frames to temporary files
-        output$download_results <- downloadHandler(
+        output$download_results <- shiny::downloadHandler(
           filename = function() {
-            paste0("AU_Join_Results_"
-                   , format(Sys.time(), "%Y%m%d_%H%M%S")
-                   , ".zip")
+            paste0(tadat$default_outfile, ".zip")
+            # paste0("AU_Join_Results_",
+            #        format(Sys.time(), "%Y%m%d_%H%M%S"),
+            #        ".zip")
           },
+          
           content = function(file) {
+            
+            # define file paths
+            temp_dir <- tempdir()
+            ml_input_file_path <- file.path(temp_dir, paste0(tadat$default_outfile, "_copy_input_file.csv"))
+            mltoaus_file_path <- file.path(temp_dir, paste0(tadat$default_outfile, "_mltoaus_for_review.csv"))
+            autouse_file_path <- file.path(temp_dir, paste0(tadat$default_outfile, "_autouse_for_review.csv"))
+            progress_file_path <- file.path(temp_dir, paste0(tadat$default_outfile, "_prog.rda"))
+            zipfile <- file.path(temp_dir, paste0(tadat$default_outfile, ".zip"))
+            
             # Define file names for inside the ZIP
-            file1 <- "MLtoAU_for_Review.csv"
-            file2 <- "AUtoUse_for_Review.csv"
+            # file1 <- "MLtoAU_for_Review.csv"
+            # file2 <- "AUtoUse_for_Review.csv"
             
             # Create temp files
-            tmpdir <- tempdir()
-            tmpfile1 <- file.path(tmpdir, file1)
-            tmpfile2 <- file.path(tmpdir, file2)
-            zipfile <- file.path(tmpdir, "results.zip")
+            # tmpdir <- tempdir()
+            # tmpfile1 <- file.path(tmpdir, file1)
+            # tmpfile2 <- file.path(tmpdir, file2)
+            # zipfile <- file.path(tmpdir, "results.zip")
             
+            # function to save tadat values
+            write_tadat_file <- function(tadat, filename) {
+              
+              # define file variables to be saved
+              default_outfile <- tadat$default_outfile
+              job_id <- tadat$job_id
+              df_ml_input <- tadat$df_ml_input
+              df_mltoau_for_review <- tadat$df_mltoau_for_review
+              df_autouse_for_review <- tadat$df_autouse_for_review
+              temp_dir <- tadat$temp_dir
+              
+              # save file
+              save(default_outfile,
+                   job_id,
+                   df_ml_input,
+                   df_mltoau_for_review,
+                   df_autouse_for_review,
+                   temp_dir,
+                   file = filename)
+            }
+            
+            # write tadat RData file with session info
+            write_tadat_file(tadat, progress_file_path)
+          
             # Write data frames to CSV
-            utils::write.csv(df_mltoau_review_v2, tmpfile1, row.names = FALSE)
-            utils::write.csv(df_autouse_review, tmpfile2, row.names = FALSE)
+            # utils::write.csv(df_mltoau_review_v2, tmpfile1, row.names = FALSE)
+            # utils::write.csv(df_autouse_review, tmpfile2, row.names = FALSE)
+            readr::write_csv(x = as.data.frame(tadat$df_ml_input), file = ml_input_file_path)
+            readr::write_csv(x = as.data.frame(tadat$df_mltoau_for_review), file = mltoaus_file_path)
+            readr::write_csv(x = as.data.frame(tadat$df_autouse_for_review), file = autouse_file_path)
             
             # Zip them
-            utils::zip(zipfile = zipfile, files = c(tmpfile1, tmpfile2)
-                       , flags = "-j")
+            utils::zip(zipfile = zipfile,
+                       files = c(ml_input_file_path, mltoaus_file_path, autouse_file_path, progress_file_path),
+                       # files = c(tmpfile1, tmpfile2),
+                       flags = "-j")
             
             # Copy zip to final destination
             file.copy(zipfile, file)
