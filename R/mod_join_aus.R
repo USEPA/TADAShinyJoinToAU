@@ -18,10 +18,10 @@
 
 mod_join_aus_ui <- function(id) {
   # set module session id
-  ns <- NS(id)
+  ns <- shiny::NS(id)
   
   # start taglist
-  tagList(
+  shiny::tagList(
     
     # header
     htmltools::h2("2. Join Monitoring Locations to AUs"),
@@ -33,7 +33,7 @@ mod_join_aus_ui <- function(id) {
       shinyjs::useShinyjs(),
       
       # left column prompts
-      column(
+      shiny::column(
         width = 4,
         htmltools::strong("Purpose"),
         htmltools::p("This app joins monitoring locations (MLs) to assessment
@@ -72,7 +72,7 @@ mod_join_aus_ui <- function(id) {
       ), # END ~ column
       
       # right column map and table
-      column(
+      shiny::column(
         width = 8,
         htmltools::h3("Join summary"),
         htmltools::p("Below is a numerical summary of the join process 
@@ -119,7 +119,7 @@ mod_join_aus_ui <- function(id) {
 #'
 #' @noRd 
 mod_join_aus_server <- function(id, tadat){
-  moduleServer(id, function(input, output, session){
+  shiny::moduleServer(id, function(input, output, session){
     # get module session id
     ns <- session$ns
     

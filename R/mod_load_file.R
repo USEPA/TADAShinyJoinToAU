@@ -10,10 +10,10 @@
 #' 
 mod_load_file_ui <- function(id) {
   # set module session id
-  ns <- NS(id)
+  ns <- shiny::NS(id)
   
   # start taglist
-  tagList(
+  shiny::tagList(
     # header
     htmltools::h2("1. Load File"),
     
@@ -21,7 +21,7 @@ mod_load_file_ui <- function(id) {
     shiny::fluidRow(
       
       # left column file load prompts
-      column(
+      shiny::column(
         width = 4,
         htmltools::strong("Purpose"),
         htmltools::p("This app joins monitoring locations (MLs) to assessment
@@ -64,7 +64,7 @@ mod_load_file_ui <- function(id) {
       ),
       
       # right column table
-      column(
+      shiny::column(
         width = 8,
         htmltools::h3("Input file summary"),
         htmltools::p("Summary of loaded file (blank until file is loaded)."),
