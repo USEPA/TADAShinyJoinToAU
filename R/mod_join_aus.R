@@ -38,8 +38,10 @@ mod_join_aus_ui <- function(id) {
         htmltools::strong("Purpose"),
         htmltools::p("This app joins monitoring locations (MLs) to assessment
         units (AUs) which can be exported. It also outputs an AU to designated 
-        use table. In this tab, you first join the MLs to AUs, then review the 
+        use table. In this tab, first join the MLs to AUs, then review the 
                      results, and lastly, download the data for external review."),
+        htmltools::p("Note: A within-app default ML to AU crosswalk table is 
+                     used if one is not uploaded on Tab 1 (Step 1c)."),
         htmltools::strong("Instructions"),
         htmltools::p("Click on the button below to join MLs to AUs and their 
                      designated uses (Step 2a). Once the process is completed, 
@@ -122,7 +124,7 @@ mod_join_aus_server <- function(id, tadat){
   shiny::moduleServer(id, function(input, output, session){
     # get module session id
     ns <- session$ns
-    
+
     #### 1. join au button ####
     
     # join au button
@@ -141,6 +143,7 @@ mod_join_aus_server <- function(id, tadat){
         
         # define data
         df_ml_data <- tadat$df_ml_input
+        df_xwalk_input <- tadat$df_xwalk_input
         
         # qc check for empty data
         if(is.null(df_ml_data)){
@@ -154,8 +157,14 @@ mod_join_aus_server <- function(id, tadat){
         Sys.sleep(0.25)
         
         # join ml id's to aus
+        if (is.null(df_xwalk_input) == FALSE) {
+          myXwalk <- df_xwalk_input
+        } else {
+          myXwalk <- mltoau_crosswalk_simple
+        } # END ~ if/else
+        
         df_join_au <- df_ml_data |>
-          dplyr::left_join(mltoau_crosswalk_simple, by = ("MonitoringLocationIdentifier"))
+          dplyr::left_join(myXwalk, by = ("MonitoringLocationIdentifier"))
         
         # increment progress bar, and update the detail text
         shiny::incProgress(amount = 1/n_inc, detail = "Joined crosswalk...")
@@ -552,7 +561,9 @@ mod_join_aus_server <- function(id, tadat){
           options = list(scrollX = TRUE,
                          pageLength = 5,
                          lengthMenu = c(5, 10, 25, 50, 100),
-                         autoWidth = TRUE)
+                         autoWidth = TRUE,
+                         rownames = FALSE,
+                         searching = FALSE)
           )
         
         # show au to use data as simple table (no selection)
@@ -566,7 +577,9 @@ mod_join_aus_server <- function(id, tadat){
         options = list(scrollX = TRUE,
                        pageLength = 5,
                        lengthMenu = c(5, 10, 25, 50, 100),
-                       autoWidth = TRUE)
+                       autoWidth = TRUE,
+                       rownames = FALSE,
+                       searching = FALSE)
         )
         
         # increment progress bar, and update the detail text
