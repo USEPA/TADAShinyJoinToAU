@@ -55,7 +55,7 @@ mod_load_file_ui <- function(id) {
         ),
         shiny::fileInput(
           inputId = ns("input_file"),
-          label = "1b. Choose water quality file to load:",
+          label = "1b. Choose water quality file to load (required):",
           width = "90%",
           placeholder = "No file selected.",
           multiple = FALSE,
@@ -69,7 +69,7 @@ mod_load_file_ui <- function(id) {
         ), 
           shiny::fileInput(
           inputId = ns("input_Xwalk_file"),
-          label = "1c. Choose ML to AU crosswalk file to load:",
+          label = "1c. Choose ML to AU crosswalk file to load (optional):",
           width = "90%",
           placeholder = "No file selected.",
           multiple = FALSE,

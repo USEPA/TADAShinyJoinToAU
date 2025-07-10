@@ -554,7 +554,20 @@ mod_join_aus_server <- function(id, tadat){
         output$df_ml_results_dt <- DT::renderDT({
           
           # save event reactive object
-          df_data <- df_mltoau_review_v2
+          df_data <- df_mltoau_review_v2 |>
+            dplyr::select(MonitoringLocationIdentifier,
+                          Needs_Review,
+                          Source,
+                          JoinToAU.AssessmentUnitIdentifier,
+                          MonitoringLocationTypeName,
+                          ATTAINS.waterTypeCode,
+                          FLAG_MonitoringLocationTypeName,
+                          FLAG_Duplicate) |> 
+            dplyr::rename(Site = MonitoringLocationIdentifier
+                   , AU = JoinToAU.AssessmentUnitIdentifier
+                   , Site_Type = MonitoringLocationTypeName
+                   , ATTAINS_Type = ATTAINS.waterTypeCode
+                   , FLAG_Type = FLAG_MonitoringLocationTypeName)
           
           },
           filter = "top",
@@ -677,10 +690,10 @@ mod_join_aus_server <- function(id, tadat){
             
             # define file paths
             temp_dir <- tempdir()
-            ml_input_file_path <- file.path(temp_dir, paste0(tadat$default_outfile, "_copy_input_file.csv"))
-            mltoaus_file_path <- file.path(temp_dir, paste0(tadat$default_outfile, "_mltoaus_for_review.csv"))
-            autouse_file_path <- file.path(temp_dir, paste0(tadat$default_outfile, "_autouse_for_review.csv"))
-            progress_file_path <- file.path(temp_dir, paste0(tadat$default_outfile, "_prog.rda"))
+            ml_input_file_path <- file.path(temp_dir, paste0("TADAShinyJoinToAU_copy_input_file.csv"))
+            mltoaus_file_path <- file.path(temp_dir, paste0("TADAShinyJoinToAU_MLtoAUs_for_review.csv"))
+            autouse_file_path <- file.path(temp_dir, paste0("TADAShinyJoinToAU_AUtoUses_for_review.csv"))
+            progress_file_path <- file.path(temp_dir, paste0("TADAShinyJoinToAU_prog.rda"))
             zipfile <- file.path(temp_dir, paste0(tadat$default_outfile, ".zip"))
             
             # Define file names for inside the ZIP
