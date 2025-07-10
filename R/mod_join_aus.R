@@ -468,6 +468,7 @@ mod_join_aus_server <- function(id, tadat){
                         TADA.MonitoringLocationIdentifier,
                         Needs_Review,
                         Source,
+                        JoinToAU.AssessmentUnitIdentifier, 
                         LatitudeMeasure,
                         LongitudeMeasure,
                         TADA.LatitudeMeasure,
@@ -477,8 +478,7 @@ mod_join_aus_server <- function(id, tadat){
                         FLAG_MonitoringLocationTypeName,
                         R8.AssessmentUnitIdentifier,
                         ATTAINS.assessmentunitidentifier,
-                        FLAG_Duplicate,
-                        JoinToAU.AssessmentUnitIdentifier) |>
+                        FLAG_Duplicate) |>
           dplyr::arrange(Needs_Review, MonitoringLocationIdentifier)
         
         # increment progress bar, and update the detail text
