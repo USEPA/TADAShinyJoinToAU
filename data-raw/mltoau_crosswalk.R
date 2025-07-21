@@ -277,10 +277,29 @@ df_umu <- get_tribe_attains_uses(tribe_abrv = "UTEMTN")
 # Ute Mountain Ute
 # Southern Ute
 
+# Pull in updated WY crosswalk
+WY_raw <- read_csv(file = here::here("data-raw"
+        , "WYDEQ_uses_report_ATTAINS_2024OrganizationFinalAction_07_17_2025.csv"),
+                        col_names = TRUE)
+
+df_WY_formatted <- WY_raw |>
+  select(ASSESSMENT_UNIT_ID, USE_NAME) |>
+  mutate(organizationIdentifier = "WYDEQ"
+         , organizationName = "Wyoming"
+         , organizationTypeText = "State"
+         , reportingCycleText = "2025"
+         , assessments_cycleLastAssessedText = NA
+         , assessments_yearLastMonitoredText = NA) %>% 
+  rename(assessments_assessmentUnitIdentifier = ASSESSMENT_UNIT_ID
+         , assessments_useAttainments_useName = USE_NAME)
 
 # ---- combine data into one long file ----
 # combine data
-autouse_crosswalk_raw <- bind_rows(df_co, df_mt, df_nd, df_sd, df_ut, df_wy, df_bf, df_umu) |>
+autouse_crosswalk_raw <- bind_rows(df_co, df_mt, df_nd, df_sd, df_ut
+                                   # , df_wy
+                                   # , df_bf
+                                   , df_WY_formatted
+                                   , df_umu) |>
   arrange(organizationIdentifier, assessments_assessmentUnitIdentifier, assessments_useAttainments_useName)
 
 # finalize
