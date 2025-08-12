@@ -4,6 +4,11 @@
 *.RData
 *.Ruserdata
 
+# session data files
+.RDataTmp
+.httr-oauth
+.DS_Store
+
 # Ignore build artifacts
 *.tar.gz
 *.zip
@@ -11,3 +16,16 @@
 # temporary files created by r markdown
 *.utf8.md
 *.knit.md
+
+# r environment variables
+.Renviron
+
+# r cache
+*_cache/
+/cache/
+
+# vs code files
+.vscode/
+
+# ignore scratch folder
+scratch/
