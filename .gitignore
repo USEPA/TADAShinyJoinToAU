@@ -1,7 +1,6 @@
 # history files
 .Rhistory
 .Rapp.history
-.Rbuildignore
 
 # r project file
 .Rproj.user/
@@ -13,7 +12,6 @@
 .RDataTmp
 .httr-oauth
 .DS_Store
-.quarto
 
 # user-specific files
 .Ruserdata

@@ -1,0 +1,12 @@
+^.*\.Rproj$
+^\.Rproj\.user$
+.rscignore
+.github
+^CONTRIBUTING\.md$
+^LICENSE\.md$
+^app\.R$
+^data-raw/
+^dev/
+^manifest\.json$
+^rsconnect/
+_disable_autoload.R
