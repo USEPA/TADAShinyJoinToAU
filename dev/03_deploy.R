@@ -26,10 +26,10 @@ devtools::check()
 # devtools::build()
 
 ## Docker ----
-## If you want to deploy via a generic Dockerfile
-golem::add_dockerfile_with_renv()
-## If you want to deploy to ShinyProxy
-golem::add_dockerfile_with_renv_shinyproxy()
+# ## If you want to deploy via a generic Dockerfile
+# golem::add_dockerfile_with_renv()
+# ## If you want to deploy to ShinyProxy
+# golem::add_dockerfile_with_renv_shinyproxy()
 
 ## Posit ----
 ## If you want to deploy on Posit related platforms
@@ -73,7 +73,6 @@ rsconnect::deployApp(appDir = getwd(),
                      server = "rstudio-connect.dmap-stage.aws.epa.gov",      
                      appName = "tadashinyjointoau", 
                      appTitle = "TADAShinyJoinToAU",
-                     appId = 979, 
                      launch.browser = TRUE, 
                      lint = TRUE, 
                      metadata = list(asMultiple = FALSE, asStatic = FALSE),      
