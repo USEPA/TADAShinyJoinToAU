@@ -18,6 +18,26 @@
 ## install.packages('attachment') # if needed.
 attachment::att_amend_desc()
 
+## Add one line by package you want to add as dependency
+# usethis::use_package("shinydashboard")
+# usethis::use_package("shinydashboardPlus")
+# usethis::use_package("shinyBS")
+# usethis::use_package("shinyalert")
+# usethis::use_package("httr")
+# usethis::use_package("purrr")
+# usethis::use_package("readxl")
+usethis::use_package("zip") # remove?
+usethis::use_package("gotop")
+usethis::use_package("utils")
+usethis::use_package("shinyjs")
+usethis::use_package("dplyr")
+usethis::use_package("tidyr")
+usethis::use_package("sf")
+usethis::use_package("leaflet")
+usethis::use_package("EPATADA")
+usethis::use_package("readr")
+usethis::use_package("stats")
+
 ## Add modules ----
 ## Create a module infrastructure in R/
 golem::add_module(name = "name_of_module1", with_test = TRUE) # Name of the module

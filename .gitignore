@@ -13,6 +13,7 @@
 .RDataTmp
 .httr-oauth
 .DS_Store
+.quarto
 
 # user-specific files
 .Ruserdata
@@ -33,3 +34,4 @@
 
 # ignore scratch folder
 scratch/
+.quarto
