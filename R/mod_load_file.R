@@ -50,7 +50,7 @@ mod_load_file_ui <- function(id) {
         shiny::radioButtons(
           inputId = ns("separator"),
           label = "1a. Choose file separator:",
-          choices = c(Comma = ",", Tab = "\t"),
+          choices = c(Comma = ",", Excel = "excel" , Tab = "\t"),
           selected = ","
         ),
         shiny::fileInput(
@@ -64,7 +64,7 @@ mod_load_file_ui <- function(id) {
             "text/comma-separated-values",
             "text/tab-separated-values",
             "text/plain",
-            ".csv", ".tsv", ".txt"
+            ".csv", ".tsv", ".txt", ".xlsx"
           )
         ), 
           shiny::fileInput(
@@ -78,7 +78,7 @@ mod_load_file_ui <- function(id) {
             "text/comma-separated-values",
             "text/tab-separated-values",
             "text/plain",
-            ".csv", ".tsv", ".txt"
+            ".csv", ".tsv", ".txt", ".xlsx"
           )
         )
       ),
@@ -141,13 +141,20 @@ mod_load_file_server <- function(id, tadat){
       # shiny::req(input$input_file)
       shiny::validate(need(!is.null(input$input_file), "No file selected."))
       
+      # define file path and extension
+      file_path_input <- input$input_file$datapath
+      file_ext_input <- tools::file_ext(file_path_input)
+      
+      print(paste("Detected file extension:", file_ext_input))
+      
       # log to command line
       message(
         paste0(
-          paste0(format(Sys.time(), "%Y-%m-%d %H:%M:%S \n")),
-          paste0("Import, separator: '", input$separator, "'\n"),
-          paste0("Import, file name: ", input$input_file$name, "\n"),
-          paste0("Import, file path: ", input$input_file$datapath, "\n")
+          format(Sys.time(), "%Y-%m-%d %H:%M:%S"), "\n",
+          "Monitoring Location Import, separator: '", input$separator, "'\n",
+          "Monitoring Location Import, file name: ", input$input_file$name, "\n",
+          "Monitoring Location Import, file path: ", file_path_input, "\n",
+          "Monitoring Location Import, file extension: ", file_ext_input, "\n"
         )
       )
       
@@ -162,12 +169,20 @@ mod_load_file_server <- function(id, tadat){
         duration = 5
       )
       
-      # Read user imported file
-      df_ml_input <- utils::read.delim(input$input_file$datapath,
-                                       header = TRUE,
-                                       sep = input$separator,
-                                       stringsAsFactors = FALSE,
-                                       na.strings = c("", "NA"))
+      # read user imported file based on extension
+      if (file_ext_input %in% c("csv", "tsv", "txt")) {
+        df_ml_input <- utils::read.delim(file_path_input, header = TRUE
+                                           , sep = input$separator
+                                           , stringsAsFactors = FALSE
+                                           , na.strings = c("", "NA"))
+      } else if (file_ext_input %in% c("xlsx", "xls")) {
+        df_ml_input <- readxl::read_excel(file_path_input, na = c("NA","")
+                                            , trim_ws = TRUE, col_names = TRUE
+                                            , guess_max = 100000)
+      } else {
+        shiny::showNotification("Unsupported file type.", type = "error")
+        return(NULL)
+      } # END ~ if/else
       
       # define required columns
       required_cols <- c("MonitoringLocationIdentifier",
@@ -210,13 +225,18 @@ mod_load_file_server <- function(id, tadat){
       # shiny::req(input$input_file)
       shiny::validate(need(!is.null(input$input_Xwalk_file), "No file selected."))
       
+      # define file path and extension
+      file_path_input_Xwalk <- input$input_Xwalk_file$datapath
+      file_ext_input_Xwalk <- tools::file_ext(file_path_input_Xwalk)
+      
       # log to command line
       message(
         paste0(
-          paste0(format(Sys.time(), "%Y-%m-%d %H:%M:%S \n")),
-          paste0("Import, separator: '", input$separator, "'\n"),
-          paste0("Import, file name: ", input$input_Xwalk_file$name, "\n"),
-          paste0("Import, file path: ", input$input_Xwalk_file$datapath, "\n")
+          format(Sys.time(), "%Y-%m-%d %H:%M:%S"), "\n",
+          "Monitoring Location Import, separator: '", input$separator, "'\n",
+          "Monitoring Location Import, file name: ", input$input_Xwalk_file$name, "\n",
+          "Monitoring Location Import, file path: ", file_path_input_Xwalk, "\n",
+          "Monitoring Location Import, file extension: ", file_ext_input_Xwalk, "\n"
         )
       )
       
@@ -231,12 +251,20 @@ mod_load_file_server <- function(id, tadat){
         duration = 5
       )
       
-      # Read user imported file
-      df_xwalk_input <- utils::read.delim(input$input_Xwalk_file$datapath,
-                                       header = TRUE,
-                                       sep = input$separator,
-                                       stringsAsFactors = FALSE,
-                                       na.strings = c("", "NA"))
+      # read user imported file based on extension
+      if (file_ext_input_Xwalk %in% c("csv", "tsv", "txt")) {
+        df_xwalk_input <- utils::read.delim(file_path_input_Xwalk, header = TRUE
+                                         , sep = input$separator
+                                         , stringsAsFactors = FALSE
+                                         , na.strings = c("", "NA"))
+      } else if (file_ext_input_Xwalk %in% c("xlsx", "xls")) {
+        df_xwalk_input <- readxl::read_excel(file_path_input_Xwalk, na = c("NA","")
+                                          , trim_ws = TRUE, col_names = TRUE
+                                          , guess_max = 100000)
+      } else {
+        shiny::showNotification("Unsupported file type.", type = "error")
+        return(NULL)
+      } # END ~ if/else
       
       # define required columns
       required_cols <- c("MonitoringLocationIdentifier",
@@ -349,7 +377,7 @@ mod_load_file_server <- function(id, tadat){
                , ncol(df_Xwalk_summary), " columns.\n","There are "
                , length(unique(df_Xwalk_summary$MonitoringLocationIdentifier))
                , " unique monitoring locations."," There are "
-               , length(unique(df_Xwalk_summary$AssessmentUnit))
+               , length(unique(df_Xwalk_summary$AssessmentUnitIdentifier))
                , " unique assessment units.")
       } # END ~ IF/ELSE
     }) # END ~ shiny::renderText
