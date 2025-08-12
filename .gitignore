@@ -1,22 +1,21 @@
-# history files
-.Rhistory
-.Rapp.history
-.Rbuildignore
-
-# r project file
-.Rproj.user/
-.Rproj.user
+# Ignore common temporary files
+*.Rproj.user
+*.Rhistory
+*.RData
+*.Ruserdata
 
 # session data files
-.RData
-.Rdata
 .RDataTmp
 .httr-oauth
 .DS_Store
-.quarto
 
-# user-specific files
-.Ruserdata
+# Ignore build artifacts
+*.tar.gz
+*.zip
+
+# temporary files created by r markdown
+*.utf8.md
+*.knit.md
 
 # r environment variables
 .Renviron
@@ -25,13 +24,8 @@
 *_cache/
 /cache/
 
-# temporary files created by r markdown
-*.utf8.md
-*.knit.md
-
 # vs code files
 .vscode/
 
 # ignore scratch folder
 scratch/
-.quarto
