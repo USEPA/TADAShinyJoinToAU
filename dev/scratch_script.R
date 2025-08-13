@@ -155,3 +155,64 @@ df_autouse_cw <- TADAShinyJoinToAU::autouse_crosswalk_simple
 # ND spirit lake attains pull for testing
 # write_csv(df_ml_unmatched_attains, fs::path_tidy("C:/Users/sheila.saia/OneDrive - Tetra Tech, Inc/Desktop/r8_app_testing/df_ml_unmatched_attains.csv"))
 df_ml_unmatched_attains <- read_csv(fs::path_tidy("C:/Users/sheila.saia/OneDrive - Tetra Tech, Inc/Desktop/r8_app_testing/df_ml_unmatched_attains.csv"))
+
+
+# ---- left join issue testing ----
+# load libraries
+library(tidyverse)
+library(fs)
+
+# cristina's data
+df_ml_data_path <- fs::path_tidy("C:/Users/sheila.saia/Downloads/ND_Little_Muddy_Works.csv")
+
+# load in data
+df_ml_data <- readr::read_csv(df_ml_data_path, col_names = TRUE)
+
+# load crosswalk
+df_xwalk_data <- mltoau_crosswalk_simple
+
+# join
+df_join_au <- df_ml_data |>
+  dplyr::left_join(df_xwalk_data, by = ("MonitoringLocationIdentifier"))
+
+
+# ---- join to au app testing ----
+# testing epa tada functions 2025-08-12
+
+# remotes::install_github("USEPA/EPATADA", ref = "develop", dependencies = TRUE, force = TRUE)
+
+# load libraries
+library(fs)
+library(devtools)
+library(tidyverse)
+library(EPATADA)
+
+# ml data
+# ml_data_path <- fs::path_tidy("C:/Users/sheila.saia/OneDrive - Tetra Tech, Inc/proj 2025 epa region8/5_Work/join2au_app/Example_Data_ND/ND_Spirit.csv")
+ml_data_path <- fs::path_tidy("C:/Users/sheila.saia/OneDrive - Tetra Tech, Inc/proj 2025 epa region8/5_Work/join2au_app/Example_Data_ND/ND_Little_Muddy.csv")
+ml_data <- read_csv(ml_data_path, col_names = TRUE)
+
+# grep column names with org id info
+names(ml_data)[str_detect(names(ml_data), pattern = "Org")]
+
+# get au site crosswalk
+my_ml_data_orgs <- unique(ml_data$OrganizationIdentifier) # c("USGS-ND", "NARS_WQX", "21NDHDWQ_WQX", "COEOMAHA_WQX")
+
+# use function
+EPATADA::TADA_GetATTAINSAUSiteCrosswalk(org_id = my_ml_data_orgs[1])
+# this isn't working (are org id's from ml_data wqx org id's?)
+
+# from docs
+test <- EPATADA::TADA_GetATTAINSAUSiteCrosswalk(org_id = "AKDECWQ")
+names(test)
+# "MonitoringLocationIdentifier" "OrganizationIdentifier" "ATTAINS.assessmentunitidentifier" "MonitoringDataLinkText"
+
+# try attains org id
+my_attains_orgs <- "21NDHDWQ"
+
+# use function
+EPATADA::TADA_GetATTAINSAUSiteCrosswalk(org_id = my_attains_orgs[1])
+# this runs but then returns: "TADA_GetATTAINSAUSiteCrosswalk: No monitoring location identifiers were recorded in ATTAINS for 21NDHDWQ assessment units. No crosswalk can be returned."
+
+
+
