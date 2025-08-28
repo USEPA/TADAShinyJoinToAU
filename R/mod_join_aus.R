@@ -200,8 +200,8 @@ mod_join_aus_server <- function(id, tadat){
           dplyr::distinct() |>
           dplyr::mutate(Source = "Regional Crosswalk Table",
                         Needs_Review = "No",
-                        ATTAINS.assessmentunitidentifier = NA,
-                        ATTAINS.waterTypeCode = NA) |>
+                        ATTAINS.assessmentunitidentifier = NA_character_,
+                        ATTAINS.waterTypeCode = NA_character_) |>
           dplyr::select(dplyr::all_of(cols_to_keep)) |>
           sf::st_drop_geometry()
         # this df can sometimes be empty (if all are unmatched)
@@ -293,8 +293,9 @@ mod_join_aus_server <- function(id, tadat){
             dplyr::distinct() |>
             dplyr::mutate(Source = dplyr::case_when((!is.na(ATTAINS.assessmentunitidentifier)) ~ "TADA ATTAINS Geospatial",
                                                             TRUE ~ "No Match; Manual Match Needed"),
-                          Needs_Review = "Yes") |>
-            dplyr::select(dplyr::all_of(cols_to_keep))
+                          Needs_Review = "Yes",
+                          ATTAINS.assessmentunitidentifier = as.character(ATTAINS.assessmentunitidentifier)) |>
+            dplyr::select(dplyr::all_of(cols_to_keep)) 
           
           # merge matched and unmatched df's
           df_mltoau_review <- dplyr::bind_rows(df_ml_unmatched_attains_aus, df_ml_matched)
@@ -327,6 +328,7 @@ mod_join_aus_server <- function(id, tadat){
               
               # add row
               df_temp_missing_to_add <- dplyr::add_row(
+                df_temp_missing_to_add,
                 Needs_Review = "Yes",
                 Source = "No Match; Manual Match Needed",
                 MonitoringLocationIdentifier = df_temp_missing_sel$MonitoringLocationIdentifier,
@@ -336,9 +338,9 @@ mod_join_aus_server <- function(id, tadat){
                 TADA.MonitoringLocationIdentifier = df_temp_missing_sel$TADA.MonitoringLocationIdentifier,
                 TADA.LatitudeMeasure = df_temp_missing_sel$TADA.LatitudeMeasure,
                 TADA.LongitudeMeasure = df_temp_missing_sel$TADA.LongitudeMeasure,
-                ATTAINS.assessmentunitidentifier = NA,
-                ATTAINS.waterTypeCode = NA,
-                R8.AssessmentUnitIdentifier = df_temp_missing_sel$AssessmentUnitIdentifier)
+                ATTAINS.assessmentunitidentifier = NA_character_,
+                ATTAINS.waterTypeCode = NA_character_,
+                R8.AssessmentUnitIdentifier = df_temp_missing_sel$AssessmentUnitIdentifier) 
             }
             
             # append
@@ -390,6 +392,7 @@ mod_join_aus_server <- function(id, tadat){
               
               # add row
               df_temp_missing_to_add <- dplyr::add_row(
+                df_temp_missing_to_add,
                 Needs_Review = "Yes",
                 Source = "No Match; Manual Match Needed",
                 MonitoringLocationIdentifier = df_temp_missing_sel$MonitoringLocationIdentifier,
@@ -399,8 +402,8 @@ mod_join_aus_server <- function(id, tadat){
                 TADA.MonitoringLocationIdentifier = df_temp_missing_sel$TADA.MonitoringLocationIdentifier,
                 TADA.LatitudeMeasure = df_temp_missing_sel$TADA.LatitudeMeasure,
                 TADA.LongitudeMeasure = df_temp_missing_sel$TADA.LongitudeMeasure,
-                ATTAINS.assessmentunitidentifier = NA,
-                ATTAINS.waterTypeCode = NA,
+                ATTAINS.assessmentunitidentifier = NA_character_,
+                ATTAINS.waterTypeCode = NA_character_,
                 R8.AssessmentUnitIdentifier = df_temp_missing_sel$AssessmentUnitIdentifier)
             }
             
