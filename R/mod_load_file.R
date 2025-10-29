@@ -47,15 +47,22 @@ mod_load_file_ui <- function(id) {
                             maximum size of ", get_golem_config("MB_LIMIT")
                             , " MB.")),
         htmltools::h3("Select file parameters"),
+        selectizeInput(
+          inputId = ns("org_selector"),
+          label = "1a. Choose an Organization:",
+          choices = NULL,  # choices are populated in server
+          multiple = FALSE,
+          width = "90%"
+        ), 
         shiny::radioButtons(
           inputId = ns("separator"),
-          label = "1a. Choose file separator:",
+          label = "1b. Choose file separator:",
           choices = c(Comma = ",", Excel = "excel" , Tab = "\t"),
           selected = ","
         ),
         shiny::fileInput(
           inputId = ns("input_file"),
-          label = "1b. Choose water quality file to load (required):",
+          label = "1c. Choose water quality file to load (required):",
           width = "90%",
           placeholder = "No file selected.",
           multiple = FALSE,
@@ -69,7 +76,21 @@ mod_load_file_ui <- function(id) {
         ), 
           shiny::fileInput(
           inputId = ns("input_Xwalk_file"),
-          label = "1c. Choose ML to AU crosswalk file to load (optional):",
+          label = "1d. Choose ML to AU crosswalk file to load (optional):",
+          width = "90%",
+          placeholder = "No file selected.",
+          multiple = FALSE,
+          accept = c(
+            "text/csv",
+            "text/comma-separated-values",
+            "text/tab-separated-values",
+            "text/plain",
+            ".csv", ".tsv", ".txt", ".xlsx"
+          )
+        ),
+        shiny::fileInput(
+          inputId = ns("input_UseXwalk_file"),
+          label = "1e. Choose AU to Use crosswalk file to load (optional):",
           width = "90%",
           placeholder = "No file selected.",
           multiple = FALSE,
@@ -95,15 +116,25 @@ mod_load_file_ui <- function(id) {
         htmltools::br(),
         DT::dataTableOutput(outputId = ns("df_import_dt")), 
         
-        htmltools::h3("Crosswalk Table input file summary"),
+        htmltools::h3("ML to AU Crosswalk Table input file summary"),
         htmltools::p("Summary of loaded file (blank until file is loaded)."),
         shiny::verbatimTextOutput(outputId = ns("input_Xwalk_summary")
                                   , placeholder = TRUE),
         htmltools::h3("Input data Preview"),
         htmltools::p("Interactive table of input dataset (blank until file 
         is loaded). Scroll, search, or sort the table below to explore."),
-        # htmltools::br(),
-        DT::dataTableOutput(outputId = ns("df_import_Xwalk_dt"))
+        htmltools::br(),
+        DT::dataTableOutput(outputId = ns("df_import_Xwalk_dt")),
+        
+        htmltools::h3("AU to Use Crosswalk Table input file summary"),
+        htmltools::p("Summary of loaded file (blank until file is loaded)."),
+        shiny::verbatimTextOutput(outputId = ns("input_UseXwalk_summary")
+                                  , placeholder = TRUE),
+        htmltools::h3("Input data Preview"),
+        htmltools::p("Interactive table of input dataset (blank until file 
+        is loaded). Scroll, search, or sort the table below to explore."),
+        DT::dataTableOutput(outputId = ns("df_import_UseXwalk_dt"))
+        
       ), # END ~  shiny::column
     ) # END ~ shiny::fluidRow
   ) # END ~ shiny::tagList
@@ -127,6 +158,22 @@ mod_load_file_server <- function(id, tadat){
   shiny::moduleServer(id, function(input, output, session){
     # get module session id
     ns <- session$ns
+    
+    # Org name ####
+    observe({
+      req(tadat$df_ATTAINS_orgs)
+      updateSelectizeInput(
+        session,
+        inputId = "org_selector",
+        choices = c("Select an organization" = ""
+                    , sort(unique(tadat$df_ATTAINS_orgs$name))),
+        server = TRUE
+      )
+    })
+    
+    observeEvent(input$org_selector, {
+      tadat$org_name <- input$org_selector
+    })
     
     # Import WQ ####
     # define event reactive object when input file is selected
@@ -233,10 +280,10 @@ mod_load_file_server <- function(id, tadat){
       message(
         paste0(
           format(Sys.time(), "%Y-%m-%d %H:%M:%S"), "\n",
-          "Monitoring Location Import, separator: '", input$separator, "'\n",
-          "Monitoring Location Import, file name: ", input$input_Xwalk_file$name, "\n",
-          "Monitoring Location Import, file path: ", file_path_input_Xwalk, "\n",
-          "Monitoring Location Import, file extension: ", file_ext_input_Xwalk, "\n"
+          "ML to AU Import, separator: '", input$separator, "'\n",
+          "ML to AU, file name: ", input$input_Xwalk_file$name, "\n",
+          "ML to AU, file path: ", file_path_input_Xwalk, "\n",
+          "ML to AU, file extension: ", file_ext_input_Xwalk, "\n"
         )
       )
       
@@ -268,7 +315,8 @@ mod_load_file_server <- function(id, tadat){
       
       # define required columns
       required_cols <- c("MonitoringLocationIdentifier",
-                         "AssessmentUnitIdentifier")
+                         "AssessmentUnitIdentifier",
+                         "WaterType")
       
       # get missing columns
       missing_cols <- setdiff(required_cols, names(df_xwalk_input))
@@ -288,6 +336,87 @@ mod_load_file_server <- function(id, tadat){
       
       # return
       df_xwalk_input
+    }) # END ~ shiny::eventReactive
+    
+    # Import Use XWalk ####
+    df_import_UseXwalk <- shiny::eventReactive(input$input_UseXwalk_file, {
+      # input$df_import will be NULL initially. After the user selects
+      # and uploads a file, it will be a data frame with 'name',
+      # 'size', 'type', and 'datapath' columns. The 'datapath'
+      # column will contain the local filenames where the data can
+      # be found.
+      
+      # validate file is selected
+      # shiny::req(input$input_file)
+      shiny::validate(need(!is.null(input$input_UseXwalk_file), "No file selected."))
+      
+      # define file path and extension
+      file_path_input_UseXwalk <- input$input_UseXwalk_file$datapath
+      file_ext_input_UseXwalk <- tools::file_ext(file_path_input_UseXwalk)
+      
+      # log to command line
+      message(
+        paste0(
+          format(Sys.time(), "%Y-%m-%d %H:%M:%S"), "\n",
+          "AU to Use, separator: '", input$separator, "'\n",
+          "AU to Use, file name: ", input$input_UseXwalk_file$name, "\n",
+          "AU to Use, file path: ", file_path_input_UseXwalk, "\n",
+          "AU to Use, file extension: ", file_ext_input_UseXwalk, "\n"
+        )
+      )
+      
+      # user notification that file is loaded
+      shiny::showNotification(
+        paste0(
+          "Import, separator: '", input$separator, "'\n",
+          "Import, file name: ", input$input_UseXwalk_file$name, "\n" #,
+          # "Import, file path: ", input$input_file$datapath
+        ),
+        type = "message",
+        duration = 5
+      )
+      
+      # read user imported file based on extension
+      if (file_ext_input_UseXwalk %in% c("csv", "tsv", "txt")) {
+        df_UseXwalk_input <- utils::read.delim(file_path_input_UseXwalk, header = TRUE
+                                            , sep = input$separator
+                                            , stringsAsFactors = FALSE
+                                            , na.strings = c("", "NA"))
+      } else if (file_ext_input_UseXwalk %in% c("xlsx", "xls")) {
+        df_UseXwalk_input <- readxl::read_excel(file_path_input_UseXwalk, na = c("NA","")
+                                             , trim_ws = TRUE, col_names = TRUE
+                                             , guess_max = 100000)
+      } else {
+        shiny::showNotification("Unsupported file type.", type = "error")
+        return(NULL)
+      } # END ~ if/else
+      
+      # define required columns
+      required_cols <- c( "ATTAINS.OrganizationIdentifier"
+                          , "ATTAINS.AssessmentUnitIdentifier"
+                          , "ATTAINS.UseName"
+                          , "ATTAINS.WaterType"               
+                          , "TADA.AssessmentUnitStatus"
+                          , "IncludeOrExclude")
+      
+      # get missing columns
+      missing_cols <- setdiff(required_cols, names(df_UseXwalk_input))
+      if (length(missing_cols) > 0) {
+        shiny::validate(
+          need(
+            FALSE,
+            paste0("Error: Missing required columns in loaded dataset.\n",
+                   "Required columns missing from loaded dataset:\n",
+                   paste0("* ", missing_cols, collapse = "\n"))
+          )
+        )
+      }
+      
+      # save to tadat
+      tadat$df_UseXwalk_input <- df_UseXwalk_input
+      
+      # return
+      df_UseXwalk_input
     }) # END ~ shiny::eventReactive
     
     # Enable second tab ####
@@ -326,6 +455,26 @@ mod_load_file_server <- function(id, tadat){
       
       # render table
       DT::datatable(df_import_Xwalk(),
+                    filter = "top",
+                    class = "compact",
+                    options = list(scrollX = TRUE,
+                                   pageLength = 5,
+                                   lengthMenu = c(5, 10, 25, 50, 100),
+                                   autoWidth = TRUE,
+                                   rownames = FALSE,
+                                   searching = FALSE))
+    }) # END ~ DT::renderDT
+    
+    #Render dt Use Xwalk ####
+    # render data in a table
+    output$df_import_UseXwalk_dt <- DT::renderDT({
+      # validate data is there
+      # shiny::req(df_import())
+      shiny::validate(need(!is.null(input$input_UseXwalk_file)
+                           , message = "File must be loaded."))
+      
+      # render table
+      DT::datatable(df_import_UseXwalk(),
                     filter = "top",
                     class = "compact",
                     options = list(scrollX = TRUE,
@@ -378,6 +527,30 @@ mod_load_file_server <- function(id, tadat){
                , length(unique(df_Xwalk_summary$MonitoringLocationIdentifier))
                , " unique monitoring locations."," There are "
                , length(unique(df_Xwalk_summary$AssessmentUnitIdentifier))
+               , " unique assessment units.")
+      } # END ~ IF/ELSE
+    }) # END ~ shiny::renderText
+    
+    # Render Use Xwalk summary ####
+    output$input_UseXwalk_summary <- shiny::renderText({
+      # if file was selected
+      if (is.null(df_import_UseXwalk)) {
+        
+        # print
+        "No file selected or file invalid."
+      }
+      
+      # 
+      else {
+        # define data to summarize
+        df_UseXwalk_summary <- df_import_UseXwalk()
+        
+        # print
+        paste0("Loaded dataset has ", nrow(df_UseXwalk_summary), " rows and "
+               , ncol(df_UseXwalk_summary), " columns.\n","There are "
+               , length(unique(df_UseXwalk_summary$MonitoringLocationIdentifier))
+               , " unique monitoring locations."," There are "
+               , length(unique(df_UseXwalk_summary$AssessmentUnitIdentifier))
                , " unique assessment units.")
       } # END ~ IF/ELSE
     }) # END ~ shiny::renderText

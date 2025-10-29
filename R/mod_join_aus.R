@@ -87,7 +87,8 @@ mod_join_aus_ui <- function(id) {
         htmltools::p("Map of sites in join organized by join results.
                      Click on the site pin to view the SiteID."),
         htmltools::br(),
-        leaflet::leafletOutput(outputId = ns("join_map"), width = "90%"),
+        shiny::uiOutput(outputId = ns("join_map"), width = "90%"),
+        # leaflet::leafletOutput(outputId = ns("join_map"), width = "90%"),
         htmltools::hr(),
         htmltools::h3("ML to AU Table"),
         htmltools::p("Summary of ML to AU join. Scroll, search, or sort the 
@@ -141,379 +142,114 @@ mod_join_aus_server <- function(id, tadat){
         message(paste0("Current system time: ", Sys.time()))
         # message(paste0("Imported file name: ", input$input_file$name))
         
+        # define organization and get code
+        selected_org_code <- reactive({
+          req(tadat$org_name, tadat$df_ATTAINS_orgs)
+          tadat$df_ATTAINS_orgs |>
+            dplyr::filter(name == tadat$org_name) |>
+            dplyr::pull(code)
+        })
+        
+        myOrg <- selected_org_code()
+        
         # define data
         df_ml_data <- tadat$df_ml_input
         df_xwalk_input <- tadat$df_xwalk_input
+        df_UseXwalk_input <- tadat$df_UseXwalk_input
         
         # qc check for empty data
         if(is.null(df_ml_data)){
           return(NULL)
         }
         
-        #### 2. join crosswalk ####
+        #### 2. Create ML/AU crosswalk ####
     
         # increment progress bar, and update the detail text
-        shiny::incProgress(amount = 1/n_inc, detail = "Join initialized...")
+        shiny::incProgress(amount = 1/n_inc
+                           , detail = "Join initialized...will take time...")
         Sys.sleep(0.25)
         
-        # join ml id's to aus
-        if (is.null(df_xwalk_input) == FALSE) {
-          myXwalk <- df_xwalk_input
+        # browser()
+        
+        if(exists("df_xwalk_input")){
+          suppressWarnings(df_AUMLRef_list <- EPATADA::TADA_CreateAUMLCrosswalk(
+            df_ml_data,
+            au_ref = df_xwalk_input,
+            org_id = myOrg,
+            batch_upload = FALSE))
+
         } else {
-          myXwalk <- mltoau_crosswalk_simple
-        } # END ~ if/else
+          suppressWarnings(df_AUMLRef_list <- EPATADA::TADA_CreateAUMLCrosswalk(
+            df_ml_data,
+            au_ref = NULL,
+            org_id = myOrg,
+            batch_upload = FALSE))
+        } # end
         
-        df_join_au <- df_ml_data |>
-          dplyr::left_join(myXwalk, by = ("MonitoringLocationIdentifier"))
-        
+        # browser()
         # increment progress bar, and update the detail text
-        shiny::incProgress(amount = 1/n_inc, detail = "Joined crosswalk...")
+        shiny::incProgress(amount = 1/n_inc, detail = "Join completed...")
         Sys.sleep(0.25)
         
-        # columns to keep
-        cols_to_keep <- c("Needs_Review", # this module
-                          "Source", # this module
-                          "MonitoringLocationIdentifier", # file
-                          "MonitoringLocationTypeName", # input file
-                          "LatitudeMeasure", # input file
-                          "LongitudeMeasure", # input file
-                          "TADA.MonitoringLocationIdentifier", # input file
-                          "TADA.LatitudeMeasure", # input file
-                          "TADA.LongitudeMeasure", # input file
-                          "ATTAINS.assessmentunitidentifier", # this module
-                          "ATTAINS.waterTypeCode", # this module
-                          "R8.AssessmentUnitIdentifier") # # this module
-        
-        #### 3. filter ml id's that match to an au ####
-        
-        # filter out ml id's that matched an au and tidy df
-        df_ml_matched <- df_join_au |>
-          dplyr::filter(!is.na(AssessmentUnitIdentifier)) |>
-          dplyr::select(MonitoringLocationIdentifier,
-                        MonitoringLocationTypeName,
-                        LatitudeMeasure,
-                        LongitudeMeasure,
-                        TADA.MonitoringLocationIdentifier,
-                        TADA.LatitudeMeasure,
-                        TADA.LongitudeMeasure,
-                        R8.AssessmentUnitIdentifier = AssessmentUnitIdentifier) |>
-          dplyr::distinct() |>
-          dplyr::mutate(Source = "Regional Crosswalk Table",
-                        Needs_Review = "No",
-                        ATTAINS.assessmentunitidentifier = NA_character_,
-                        ATTAINS.waterTypeCode = NA_character_) |>
-          dplyr::select(dplyr::all_of(cols_to_keep)) |>
-          sf::st_drop_geometry()
-        # this df can sometimes be empty (if all are unmatched)
+        # Pull out crosswalk
+        df_AUMLRef <- df_AUMLRef_list$ATTAINS_crosswalk
         
         # increment progress bar, and update the detail text
-        shiny::incProgress(amount = 1/n_inc, detail = "Checked matched AUs...")
+        shiny::incProgress(amount = 1/n_inc, detail = "Fetching uses...")
         Sys.sleep(0.25)
         
-        #### 4. filter ml id's that don't match an au ####
-      
-        # filter out ml id's that do not have a matched au
-        df_ml_unmatched <- df_join_au |>
-          dplyr::filter(is.na(AssessmentUnitIdentifier))
+        #### 3. Create AU/Use crosswalk####
+        # get uses
+        if(exists("df_UseXwalk_input")){
+          df_UseAURef <- EPATADA::TADA_CreateUseAURef(AUMLRef = df_AUMLRef
+                                                  , useAURef = df_UseXwalk_input
+                                                  , org_id = myOrg)
+        } else {
+          df_UseAURef <- EPATADA::TADA_CreateUseAURef(AUMLRef = df_AUMLRef
+                                                      , useAURef = NULL
+                                                      , org_id = myOrg)
+        } # end
         
-        # increment progress bar, and update the detail text
-        shiny::incProgress(amount = 1/n_inc, detail = "Checked unmatched AUs...")
-        Sys.sleep(0.25)
-        
-        #### 5. create ml to au table for review ####
-        
-        # if there is unmatched data pull spatial data from ATTAINS
-        if(dim(df_ml_unmatched)[1] > 0) {
-          # convert to spatial data
-          df_ml_unmatched_spatial <- EPATADA::TADA_MakeSpatial(df_ml_unmatched) |>
-            sf::st_transform(crs = sf::st_crs(4326))
-          # force to wgs84 epsg = 4326 (unprojected)
-          
-          # define parameters
-          site_ids <- unique(df_ml_unmatched_spatial$MonitoringLocationIdentifier)
-          num_site_ids <- length(site_ids)
-          chunk_size <- 1 # force this to be 1 b/c it runs faster
-          # could use chunk size to loop through but skipping this for now
-          results_list <- list()
-          
-          # loop through sites
-          for (s in seq(1, num_site_ids, by = chunk_size)) {
-            # get site
-            df_temp_ml <- df_ml_unmatched_spatial |>
-              dplyr::filter(MonitoringLocationIdentifier == site_ids[s]) |>
-              sf::st_drop_geometry()
-            # force this to be df b/c was getting "arguments have different crs" error (sheila) 
-            
-            # get data from attains
-            # tictoc::tic()
-            df_temp_ml_attains <- df_temp_ml |>
-              EPATADA::TADA_GetATTAINS(return_sf = FALSE)
-            # tictoc::toc()
-            
-            # store result
-            results_list[[length(results_list) + 1]] <- df_temp_ml_attains
-            
-            # log to command line
-            message(paste0(s, " of ", num_site_ids, " unique site ids complete"))
-            
-            # user notification that site ids complete
-            shiny::showNotification(
-              paste0(s, " of ", num_site_ids, " unique site ids complete"),
-              type = "message",
-              duration = 2
-            )
-          } # END ~ loop through sites
-          
-          # increment progress bar, and update the detail text
-          shiny::incProgress(amount = 1/n_inc, detail = "Pulled ATTAINS spatial data for unmatched AUs...")
-          Sys.sleep(0.25)
-          
-          # combine results
-          df_ml_unmatched_attains <- dplyr::bind_rows(results_list)
-          
-          # reset row id numbers
-          rownames(df_ml_unmatched_attains) <- NULL
-          
-          # log to command line
-          message("Bound unmatched ATTAINS info together...")
-          
-          # pull joined aus
-          df_ml_unmatched_attains_aus <- df_ml_unmatched_attains |>
-            sf::st_drop_geometry() |>
-            dplyr::select(MonitoringLocationIdentifier,
-                          MonitoringLocationTypeName,
-                          LatitudeMeasure,
-                          LongitudeMeasure,
-                          TADA.MonitoringLocationIdentifier,
-                          TADA.LatitudeMeasure,
-                          TADA.LongitudeMeasure,
-                          R8.AssessmentUnitIdentifier = AssessmentUnitIdentifier,
-                          ATTAINS.assessmentunitidentifier,
-                          ATTAINS.waterTypeCode) |>
-            dplyr::distinct() |>
-            dplyr::mutate(Source = dplyr::case_when((!is.na(ATTAINS.assessmentunitidentifier)) ~ "TADA ATTAINS Geospatial",
-                                                            TRUE ~ "No Match; Manual Match Needed"),
-                          Needs_Review = "Yes",
-                          ATTAINS.assessmentunitidentifier = as.character(ATTAINS.assessmentunitidentifier)) |>
-            dplyr::select(dplyr::all_of(cols_to_keep)) 
-          
-          # merge matched and unmatched df's
-          df_mltoau_review <- dplyr::bind_rows(df_ml_unmatched_attains_aus, df_ml_matched)
-          # df_mltoau_review <- rbind(df_ml_unmatched_attains_aus, df_ml_matched)
-          # has to use rbind if columns are slightly different order (sheila)
-          
-          # check that all from input are in output
-          mlid_input_list <- unique(df_ml_data$MonitoringLocationIdentifier)
-          
-          # log to command line
-          message("Checking for missing sites in output table for review...")
-          
-          # get missing ml id's
-          mlid_missing_list <- setdiff(mlid_input_list, df_mltoau_review$MonitoringLocationIdentifier)
-          
-          # if values are missing need to add in missing values for review
-          if (length(mlid_missing_list)[1] > 0) {
-            # make empty dataset to hold values
-            df_temp_missing_to_add <- df_mltoau_review |> 
-              tidyr::as_tibble() |>
-              dplyr::slice(0)
-            
-            for (m in seq(1, length(mlid_missing_list), by = 1)) {
-              # get missing site info from input
-              df_temp_missing_sel <- df_join_au |>
-                dplyr::filter(MonitoringLocationIdentifier == mlid_missing_list[m]) |>
-                dplyr::distinct() |>
-                dplyr::slice(1)
-              # take first row > what if this is multiple rows?
-              
-              # add row
-              df_temp_missing_to_add <- dplyr::add_row(
-                df_temp_missing_to_add,
-                Needs_Review = "Yes",
-                Source = "No Match; Manual Match Needed",
-                MonitoringLocationIdentifier = df_temp_missing_sel$MonitoringLocationIdentifier,
-                MonitoringLocationTypeName = df_temp_missing_sel$MonitoringLocationTypeName,
-                LatitudeMeasure = df_temp_missing_sel$LatitudeMeasure,
-                LongitudeMeasure = df_temp_missing_sel$LongitudeMeasure,
-                TADA.MonitoringLocationIdentifier = df_temp_missing_sel$TADA.MonitoringLocationIdentifier,
-                TADA.LatitudeMeasure = df_temp_missing_sel$TADA.LatitudeMeasure,
-                TADA.LongitudeMeasure = df_temp_missing_sel$TADA.LongitudeMeasure,
-                ATTAINS.assessmentunitidentifier = NA_character_,
-                ATTAINS.waterTypeCode = NA_character_,
-                R8.AssessmentUnitIdentifier = df_temp_missing_sel$AssessmentUnitIdentifier) 
-            }
-            
-            # append
-            df_mltoau_review <- dplyr::bind_rows(df_mltoau_review, df_temp_missing_to_add)
-            
-            # log to command line
-            message("Appending missing sites to output table for review...")
-          }
-          
-          # else do nothing (keep df_mltoau_review as is)
-          else{
-            # log to command line
-            message("No sites missing from output table for review...")
-          }
-          
-          # increment progress bar, and update the detail text
-          shiny::incProgress(amount = 1/n_inc, detail = "Initial merge of AUs for review...")
-          Sys.sleep(0.25)
-        }
-        
-        # unmatched data is empty
-        else {
-          # save data for review
-          df_mltoau_review <- df_ml_matched
-          
-          # check that all from input are in output
-          mlid_input_list <- unique(df_ml_data$MonitoringLocationIdentifier)
-          
-          # log to command line
-          message("Checking for missing sites in output table for review...")
-          
-          # get missing ml id's
-          mlid_missing_list <- setdiff(mlid_input_list, df_mltoau_review$MonitoringLocationIdentifier)
-          
-          # if values are missing need to add in missing values for review
-          if (length(mlid_missing_list)[1] > 0) {
-            # make empty dataset to hold values
-            df_temp_missing_to_add <- df_mltoau_review |> 
-              tidyr::as_tibble() |>
-              dplyr::slice(0)
-            
-            for (m in seq(1, length(mlid_missing_list), by = 1)) {
-              # get missing site info from input
-              df_temp_missing_sel <- df_join_au |>
-                dplyr::filter(MonitoringLocationIdentifier == mlid_missing_list[m]) |>
-                dplyr::distinct() |>
-                dplyr::slice(1)
-              # take first row > what if this is multiple rows?
-              
-              # add row
-              df_temp_missing_to_add <- dplyr::add_row(
-                df_temp_missing_to_add,
-                Needs_Review = "Yes",
-                Source = "No Match; Manual Match Needed",
-                MonitoringLocationIdentifier = df_temp_missing_sel$MonitoringLocationIdentifier,
-                MonitoringLocationTypeName = df_temp_missing_sel$MonitoringLocationTypeName,
-                LatitudeMeasure = df_temp_missing_sel$LatitudeMeasure,
-                LongitudeMeasure = df_temp_missing_sel$LongitudeMeasure,
-                TADA.MonitoringLocationIdentifier = df_temp_missing_sel$TADA.MonitoringLocationIdentifier,
-                TADA.LatitudeMeasure = df_temp_missing_sel$TADA.LatitudeMeasure,
-                TADA.LongitudeMeasure = df_temp_missing_sel$TADA.LongitudeMeasure,
-                ATTAINS.assessmentunitidentifier = NA_character_,
-                ATTAINS.waterTypeCode = NA_character_,
-                R8.AssessmentUnitIdentifier = df_temp_missing_sel$AssessmentUnitIdentifier)
-            }
-            
-            # append
-            df_mltoau_review <- dplyr::bind_rows(df_mltoau_review, df_temp_missing_to_add)
-            
-            # log to command line
-            message("Appending missing sites to output table for review...")
-          }
-          
-          # else do nothing (keep df_mltoau_review as is)
-          else{
-            # log to command line
-            message("No sites missing from output table for review...")
-          }
-          
-          # increment progress bar, and update the detail text
-          # shiny::incProgress(amount = 1/n_inc, detail = "fill in")
-          # Sys.sleep(0.25)
-        }
-        
-        
-        #### 6. qc checks ####
+        #### 4. qc checks ####
         
         # log to command line
         message("Run QC checks...")
         
+        # add extra fields to ML to AU ref
+        df_AUMLRef_v2 <- df_AUMLRef %>% 
+          dplyr::mutate(Needs_Review = dplyr::case_when(
+            (TADA.AURefSource == "TADA_CreateATTAINSAUMLCrosswalk"
+             | TADA.AURefSource == "User-supplied Ref") ~ "Yes"
+            , TRUE ~ "No"))
+        
         # check all sites are there
-        # length(unique(df_ml_data$MonitoringLocationIdentifier))
+        df_ml_data_miss_sites <- df_ml_data %>% 
+          dplyr::filter(!(TADA.MonitoringLocationIdentifier 
+                   %in% df_AUMLRef$TADA.MonitoringLocationIdentifier)) %>% 
+          dplyr::select(TADA.MonitoringLocationIdentifier) %>% 
+          dplyr::distinct() %>% 
+          dplyr::mutate(ATTAINS.AssessmentUnitIdentifier = NA_character_
+                 , ATTAINS.WaterType = NA_character_
+                 , TADA.AURefSource = "No AU source found"
+                 , ATTAINS.OrganizationIdentifier = NA_character_
+                 , Needs_Review = "Yes")
         
-        # check duplicates
-        df_dup_check <- df_mltoau_review |>
-          dplyr::count(MonitoringLocationIdentifier) |>
-          dplyr::filter(n > 1) |>
-          dplyr::mutate(FLAG_Duplicate = "Duplicate from ATTAINS (Multiple AU IDs)") |>
-          dplyr::select(-c(n))
-        
-        # revise df for review
-        df_mltoau_review_v2 <- df_mltoau_review |>
-          dplyr::left_join(df_dup_check, by = "MonitoringLocationIdentifier") |>
-          dplyr::mutate(ML_Type = dplyr::case_when((MonitoringLocationTypeName == "Lake, Reservoir, Impoundment" | MonitoringLocationTypeName == "Lake") ~ "LAKE",
-                                                   (MonitoringLocationTypeName == "Stream" | MonitoringLocationTypeName == "River/Stream") ~ "STREAM",
-                                                   (is.na(MonitoringLocationTypeName)) ~ NA, TRUE ~ "OTHER"),
-                        AU_Type = dplyr::case_when((ATTAINS.waterTypeCode == "LAKE, FRESHWATER") | (ATTAINS.waterTypeCode == "LAKE, NATURAL") ~ "LAKE",
-                                                   (ATTAINS.waterTypeCode == "RIVER") ~ "STREAM",
-                                                   (is.na(ATTAINS.waterTypeCode)) ~ NA,
-                                                   TRUE ~ "OTHER"),
-                        FLAG_MonitoringLocationTypeName = dplyr::case_when((ML_Type == AU_Type) ~ NA,
-                                                                           (ML_Type != AU_Type) ~ "Type Mismatch",
-                                                                           (is.na(R8.AssessmentUnitIdentifier) | is.na(ATTAINS.assessmentunitidentifier)) ~ NA,
-                                                                           (is.na(ML_Type) | is.na(AU_Type)) ~ "Missing Info",
-                                                                           TRUE ~ "ERROR")) |>
-          dplyr::ungroup() |>
-          dplyr::rowwise() |>
-          dplyr::mutate(FLAG_Logic = sum(any(!is.na(FLAG_MonitoringLocationTypeName), !is.na(FLAG_Duplicate))) + sum(any(Source == "No Match; Manual Match Needed"))) |>
-          dplyr::ungroup() |>
-          dplyr::mutate(Needs_Review = dplyr::case_when(Needs_Review == "No" & FLAG_Logic == 0 ~ "No",
-                                                        Needs_Review == "No" & FLAG_Logic >= 1 ~ "Yes",
-                                                        Needs_Review == "Yes" & FLAG_Logic == 0 ~ "No",
-                                                        Needs_Review == "Yes" & FLAG_Logic >= 1 ~ "Yes"),
-                        interm.AssessmentUnitIdentifier = dplyr::coalesce(ATTAINS.assessmentunitidentifier, R8.AssessmentUnitIdentifier),
-                        JoinToAU.AssessmentUnitIdentifier = dplyr::case_when(is.na(FLAG_MonitoringLocationTypeName) & is.na(FLAG_Duplicate) ~ interm.AssessmentUnitIdentifier,
-                                                                             .default = NA)) |>
-          dplyr::select(MonitoringLocationIdentifier,
-                        TADA.MonitoringLocationIdentifier,
-                        Needs_Review,
-                        Source,
-                        JoinToAU.AssessmentUnitIdentifier, 
-                        LatitudeMeasure,
-                        LongitudeMeasure,
-                        TADA.LatitudeMeasure,
-                        TADA.LongitudeMeasure,
-                        MonitoringLocationTypeName,
-                        ATTAINS.waterTypeCode,
-                        FLAG_MonitoringLocationTypeName,
-                        R8.AssessmentUnitIdentifier,
-                        ATTAINS.assessmentunitidentifier,
-                        FLAG_Duplicate) |>
-          dplyr::arrange(Needs_Review, MonitoringLocationIdentifier)
+        if(nrow(df_ml_data_miss_sites) > 0){
+          df_AUMLRef_v3 <- rbind(df_AUMLRef_v2, df_ml_data_miss_sites)
+        } else {
+          df_AUMLRef_v3 <- df_AUMLRef_v2
+        } # end
         
         # increment progress bar, and update the detail text
         shiny::incProgress(amount = 1/n_inc, detail = "Completed QC checks...")
         Sys.sleep(0.25)
         
-        
-        #### 7. create au to use table for review ####
-        
-        # select au's from step 4
-        df_ml_sel_au <- df_mltoau_review_v2 |>
-          dplyr::select(JoinToAU.AssessmentUnitIdentifier) |>
-          stats::na.omit()
-        
-        # join to crosswalk
-        df_autouse_review <- df_ml_sel_au |>
-          dplyr::left_join(autouse_crosswalk_simple, by = c("JoinToAU.AssessmentUnitIdentifier" = "AssessmentUnitIdentifier"),
-                    relationship = "many-to-many") |>
-          dplyr::arrange(JoinToAU.AssessmentUnitIdentifier, ATTAINS.UseName) |>
-          dplyr::distinct()
-        
-        # increment progress bar, and update the detail text
-        shiny::incProgress(amount = 1/n_inc, detail = "Finalize AU to use table...")
-        Sys.sleep(0.25)
-        
-        
-        #### 8. display summary ####
+        #### 5. display summary ####
         
         # render summary
         output$join_summary <- shiny::renderText({
           # if file was selected
-          if (is.null(df_mltoau_review_v2)) {
+          if (is.null(df_AUMLRef_v3)) {
             
             # print
             "Results have not been joined."
@@ -522,55 +258,47 @@ mod_join_aus_server <- function(id, tadat){
           # 
           else {
             # count regional crosswalk matched sites
-            num_cross_match <- length(unique(df_mltoau_review_v2$MonitoringLocationIdentifier[df_mltoau_review_v2$Source == "Regional Crosswalk Table"]))
+            num_cross_match <- length(unique(df_AUMLRef_v3$TADA.MonitoringLocationIdentifier[df_AUMLRef_v3$TADA.AURefSource == "User Supplied Crosswalk"]))
             
             # count attains sites
-            num_attains_match <- length(unique(df_mltoau_review_v2$MonitoringLocationIdentifier[df_mltoau_review_v2$Source == "TADA ATTAINS Geospatial"]))
+            num_attains_match <- length(unique(df_AUMLRef_v3$TADA.MonitoringLocationIdentifier[df_AUMLRef_v3$TADA.AURefSource == "ATTAINS Crosswalk"]))
             
-            # count unmatched sites
-            num_unmatch <- length(unique(df_mltoau_review_v2$MonitoringLocationIdentifier[df_mltoau_review_v2$Source == "No Match; Manual Match Needed"]))
+            # count geospatial sites
+            num_geospatial <- length(unique(df_AUMLRef_v3$TADA.MonitoringLocationIdentifier[df_AUMLRef_v3$TADA.AURefSource == "TADA_CreateATTAINSAUMLCrosswalk"]))
               
             # total sites
-            num_total <- length(unique(df_mltoau_review_v2$MonitoringLocationIdentifier))
+            num_total <- length(unique(df_AUMLRef_v3$TADA.MonitoringLocationIdentifier))
             
             # total unique au's
-            num_unique_aus <- length(unique(df_autouse_review$JoinToAU.AssessmentUnitIdentifier))
+            num_unique_aus <- length(unique(df_UseAURef$ATTAINS.AssessmentUnitIdentifier))
             
             # total unique uses
-            num_unique_uses <- length(unique(df_autouse_review$ATTAINS.UseName))
+            num_unique_uses <- length(unique(df_UseAURef$ATTAINS.UseName))
             
             # print
             paste0(
               "There are ", num_total, " unique monitoring locations.\n",
-              "Regional crosswalk matched: ", num_cross_match, " sites\n",
+              "User-supplied crosswalk matched: ", num_cross_match, " sites\n",
               "ATTAINS matched: ", num_attains_match, " sites\n",
-              "Unmatched (needs manual review): ", num_unmatch, " sites \n",
+              "TADA geospatial matched: ", num_geospatial, " sites\n",
+              # "Unmatched (needs manual review): ", num_unmatch, " sites \n",
               "Number of unique AU's (manual review not included): ", num_unique_aus, " \n",
               "Number of unique associated uses (manual review not included): ", num_unique_uses, " \n"
             )
           }
         })
         
-        #### 9. display data in tables ####
+        #### 6. display data in tables ####
         
         # show ml to use data as simple table (no selection)
         output$df_ml_results_dt <- DT::renderDT({
           
           # save event reactive object
-          df_data <- df_mltoau_review_v2 |>
-            dplyr::select(MonitoringLocationIdentifier,
-                          Needs_Review,
-                          Source,
-                          JoinToAU.AssessmentUnitIdentifier,
-                          MonitoringLocationTypeName,
-                          ATTAINS.waterTypeCode,
-                          FLAG_MonitoringLocationTypeName,
-                          FLAG_Duplicate) |> 
-            dplyr::rename(Site = MonitoringLocationIdentifier
-                   , AU = JoinToAU.AssessmentUnitIdentifier
-                   , Site_Type = MonitoringLocationTypeName
-                   , ATTAINS_Type = ATTAINS.waterTypeCode
-                   , FLAG_Type = FLAG_MonitoringLocationTypeName)
+          df_data <- df_AUMLRef_v3 |>
+            dplyr::rename(Site = TADA.MonitoringLocationIdentifier
+                   , AU = ATTAINS.AssessmentUnitIdentifier
+                   , ATTAINS_Type = ATTAINS.WaterType
+                   , AU_Source = TADA.AURefSource)
           
           },
           filter = "top",
@@ -585,8 +313,8 @@ mod_join_aus_server <- function(id, tadat){
         # show au to use data as simple table (no selection)
         output$df_au_results_dt <- DT::renderDT({
           
-          # save event reactive object
-          df_data <- df_autouse_review
+        # save event reactive object
+        df_data <- df_UseAURef
           
         },
         filter = "top",
@@ -599,86 +327,22 @@ mod_join_aus_server <- function(id, tadat){
         )
         
         # increment progress bar, and update the detail text
-        shiny::incProgress(amount = 1/n_inc, detail = "Showed tables...")
+        shiny::incProgress(amount = 1/n_inc, detail = "Show results...")
         Sys.sleep(0.25)
         
         
-        #### 10. display data map ####
+        #### 7. display data map ####
         
         # show map
-        output$join_map <- leaflet::renderLeaflet({
-          
-          # check for required values
-          shiny::req(df_mltoau_review_v2)
-          
-          # Subset data match type
-          df_sub_match <- df_mltoau_review_v2 |>
-            dplyr::filter(Source == "Regional Crosswalk Table")
-          
-          df_sub_attains <- df_mltoau_review_v2 |>
-            dplyr::filter(Source == "TADA ATTAINS Geospatial") 
-          
-          df_sub_unmatch <- df_mltoau_review_v2 |>
-            dplyr::filter(Source == "No Match; Manual Match Needed")
-          
-          leaflet::leaflet("join_map", options = leaflet::leafletOptions(attributionControl = FALSE)) |>
-            leaflet::addTiles() |>
-            leaflet::addProviderTiles(leaflet::providers$Esri.WorldStreetMap, group="Esri WSM") |>
-            leaflet::addProviderTiles(leaflet::providers$Esri.WorldImagery, group = "Esri Ortho") |>
-            leaflet::addCircleMarkers(data = df_sub_match, lat = ~LatitudeMeasure, lng = ~LongitudeMeasure,
-                             group = "Matched Sites",
-                             popup = paste("SiteID:", df_sub_match$MonitoringLocationIdentifier, "<br>"),
-                             color = "black", fillColor = "#66c2a5", fillOpacity = 2, stroke = TRUE) |>
-            leaflet::addCircleMarkers(data = df_sub_attains, lat = ~LatitudeMeasure, lng = ~LongitudeMeasure,
-                             group = "ATTAINS Sites",
-                             popup = paste("SiteID:", df_sub_attains$MonitoringLocationIdentifier, "<br>"),
-                             color = "black", fillColor = "#8da0cb", fillOpacity = 2, stroke = TRUE)|>
-            leaflet::addCircleMarkers(data = df_sub_unmatch, lat = ~LatitudeMeasure, lng = ~LongitudeMeasure,
-                             group = "No Match Sites",
-                             popup = paste("SiteID:", df_sub_unmatch$MonitoringLocationIdentifier, "<br>"),
-                             color = "black", fillColor = "#fc8d62", fillOpacity = 2, stroke = TRUE) |>
-            leaflet::addLayersControl(overlayGroups = c("Matched Sites", "ATTAINS Sites", "No Match Sites"),
-                             baseGroups = c("Esri WSM", "Esri Ortho"),
-                             options = leaflet::layersControlOptions(collapsed = TRUE)) |>
-            leaflet::addMiniMap(toggleDisplay = TRUE, tiles = leaflet::providers$Esri.WorldStreetMap,
-                       position = "bottomright") |>
-            leaflet::addLegend(position = "bottomleft", 
-                      colors = c("#66c2a5", "#8da0cb", "#fc8d62"), 
-                      labels = c("Matched Sites", "ATTAINS Sites", "No Match Sites"), 
-                      title = "Site Types")
-        })
+        output$join_map <- shiny::renderUI(EPATADA::TADA_ViewATTAINS(df_AUMLRef_list))
         
-        #### 11. zoomed map ####
-        
-        # map that filters to single location
-        # shiny::observeEvent(input$mlid_choice, {
-        #   
-        #   # check for required value
-        #   shiny::req(input$mlid_choice != "")
-        #   
-        #   df_mltoau_select <- df_mltoau_review_v2 |>
-        #     dplyr::filter(MonitoringLocationIdentifier == input$mlid_choice)
-        #   
-        #   # get lat and lon
-        #   site_long <- df_mltoau_select$Longitude # longitude
-        #   site_lat <- df_mltoau_select$Latitude # latitude
-        #   
-        #   # modfiy map
-        #   leaflet::leafletProxy("join_map") |>
-        #     leaflet::flyTo(lng = site_long, lat = site_lat, zoom = 16)
-        # })
-        
-        # increment progress bar, and update the detail text
-        # shiny::incProgress(amount = 1/n_inc, detail = "Showed zoomed map...")
-        # Sys.sleep(0.25)
-        
-        #### 12. save results ####
+        #### 8. save results ####
 
         # append to tadat
-        tadat$df_mltoau_for_review <- df_mltoau_review_v2
-        tadat$df_autouse_for_review <- df_autouse_review
+        tadat$df_AUMLRef <- df_AUMLRef_v3
+        tadat$df_UseAURef <- df_UseAURef
         
-        #### 13. download button ####
+        #### 9. download button ####
         
         # Save data frames to temporary files
         output$download_results <- shiny::downloadHandler(
@@ -699,16 +363,6 @@ mod_join_aus_server <- function(id, tadat){
             progress_file_path <- file.path(temp_dir, paste0("TADAShinyJoinToAU_prog.rda"))
             zipfile <- file.path(temp_dir, paste0(tadat$default_outfile, ".zip"))
             
-            # Define file names for inside the ZIP
-            # file1 <- "MLtoAU_for_Review.csv"
-            # file2 <- "AUtoUse_for_Review.csv"
-            
-            # Create temp files
-            # tmpdir <- tempdir()
-            # tmpfile1 <- file.path(tmpdir, file1)
-            # tmpfile2 <- file.path(tmpdir, file2)
-            # zipfile <- file.path(tmpdir, "results.zip")
-            
             # function to save tadat values
             write_tadat_file <- function(tadat, filename) {
               
@@ -716,8 +370,8 @@ mod_join_aus_server <- function(id, tadat){
               default_outfile <- tadat$default_outfile
               job_id <- tadat$job_id
               df_ml_input <- tadat$df_ml_input
-              df_mltoau_for_review <- tadat$df_mltoau_for_review
-              df_autouse_for_review <- tadat$df_autouse_for_review
+              df_mltoau_for_review <- tadat$df_AUMLRef_v3
+              df_autouse_for_review <- tadat$df_UseAURef
               temp_dir <- tadat$temp_dir
               
               # save file
@@ -736,13 +390,17 @@ mod_join_aus_server <- function(id, tadat){
             # Write data frames to CSV
             # utils::write.csv(df_mltoau_review_v2, tmpfile1, row.names = FALSE)
             # utils::write.csv(df_autouse_review, tmpfile2, row.names = FALSE)
-            readr::write_csv(x = as.data.frame(tadat$df_ml_input), file = ml_input_file_path)
-            readr::write_csv(x = as.data.frame(tadat$df_mltoau_for_review), file = mltoaus_file_path)
-            readr::write_csv(x = as.data.frame(tadat$df_autouse_for_review), file = autouse_file_path)
+            readr::write_csv(x = as.data.frame(tadat$df_ml_input)
+                             , file = ml_input_file_path)
+            readr::write_csv(x = as.data.frame(tadat$df_AUMLRef_v3)
+                             , file = mltoaus_file_path)
+            readr::write_csv(x = as.data.frame(tadat$df_UseAURef)
+                             , file = autouse_file_path)
             
             # Zip them
             utils::zip(zipfile = zipfile,
-                       files = c(ml_input_file_path, mltoaus_file_path, autouse_file_path, progress_file_path),
+                       files = c(ml_input_file_path, mltoaus_file_path
+                                 , autouse_file_path, progress_file_path),
                        # files = c(tmpfile1, tmpfile2),
                        flags = "-j")
             

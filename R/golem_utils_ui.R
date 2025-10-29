@@ -403,3 +403,17 @@ make_action_button <- function(tag, inputId = NULL) {
 #
 #   return(HTML(html))
 # }
+
+
+#' Get valid ATTAINS organization names
+#'
+#' This helper fetches domain values for org_id from rExpertQuery
+#' and returns the name column for use in UI components.
+#'
+#' @return A character vector of organization names
+get_df_ATTAINS_orgs <- function() {
+  rExpertQuery::EQ_DomainValues("org_id")
+}
+
+
+
