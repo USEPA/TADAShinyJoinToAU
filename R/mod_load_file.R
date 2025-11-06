@@ -40,9 +40,6 @@ mod_load_file_ui <- function(id) {
         htmltools::p("The optional input file for this app is a long-format data 
         file with MLs and AUs (Step 1c). The input fields are 
         'MonitoringLocationIdentifier' and 'AssessmentUnitIdentifier'."),
-        htmltools::p("The files loaded here will be used for all subsequent steps.
-        Only comma-separated or tab-separated files can be loaded (i.e., .csv or 
-                     .tsv)."),
         htmltools::p(paste0("Note: Loaded file sizes are limited to a 
                             maximum size of ", get_golem_config("MB_LIMIT")
                             , " MB.")),
@@ -54,54 +51,78 @@ mod_load_file_ui <- function(id) {
           multiple = FALSE,
           width = "90%"
         ), 
+        h3("1b. Choose water quality file to load (required):"),
         shiny::radioButtons(
-          inputId = ns("separator"),
-          label = "1b. Choose file separator:",
+          inputId = ns("input_file_separator"),
+          label = "Choose file separator:",
           choices = c(Comma = ",", Excel = "excel" , Tab = "\t"),
           selected = ","
         ),
-        shiny::fileInput(
-          inputId = ns("input_file"),
-          label = "1c. Choose water quality file to load (required):",
-          width = "90%",
-          placeholder = "No file selected.",
-          multiple = FALSE,
-          accept = c(
-            "text/csv",
-            "text/comma-separated-values",
-            "text/tab-separated-values",
-            "text/plain",
-            ".csv", ".tsv", ".txt", ".xlsx"
-          )
-        ), 
-          shiny::fileInput(
-          inputId = ns("input_Xwalk_file"),
-          label = "1d. Choose ML to AU crosswalk file to load (optional):",
-          width = "90%",
-          placeholder = "No file selected.",
-          multiple = FALSE,
-          accept = c(
-            "text/csv",
-            "text/comma-separated-values",
-            "text/tab-separated-values",
-            "text/plain",
-            ".csv", ".tsv", ".txt", ".xlsx"
-          )
+        shiny::uiOutput(ns("input_file_ui")),
+        # shiny::fileInput(
+        #   inputId = ns("input_file"),
+        #   label = "1b. Choose water quality file to load (required):",
+        #   width = "90%",
+        #   placeholder = "No file selected.",
+        #   multiple = FALSE,
+        #   accept = c(
+        #     "text/csv",
+        #     "text/comma-separated-values",
+        #     "text/tab-separated-values",
+        #     "text/plain",
+        #     ".csv", ".tsv", ".txt", ".xlsx"
+        #   )
+        # ), 
+        
+        htmltools::hr(),
+        
+        h3("1c. Choose ML to AU crosswalk file to load (optional):"),
+        shiny::radioButtons(
+          inputId = ns("input_Xwalk_file_separator"),
+          label = "Choose file separator:",
+          choices = c(Comma = ",", Excel = "excel" , Tab = "\t"),
+          selected = ","
         ),
-        shiny::fileInput(
-          inputId = ns("input_UseXwalk_file"),
-          label = "1e. Choose AU to Use crosswalk file to load (optional):",
-          width = "90%",
-          placeholder = "No file selected.",
-          multiple = FALSE,
-          accept = c(
-            "text/csv",
-            "text/comma-separated-values",
-            "text/tab-separated-values",
-            "text/plain",
-            ".csv", ".tsv", ".txt", ".xlsx"
-          )
-        )
+        shiny::uiOutput(ns("input_Xwalk_file_ui")),
+        #   shiny::fileInput(
+        #   inputId = ns("input_Xwalk_file"),
+        #   label = "1d. Choose ML to AU crosswalk file to load (optional):",
+        #   width = "90%",
+        #   placeholder = "No file selected.",
+        #   multiple = FALSE,
+        #   accept = c(
+        #     "text/csv",
+        #     "text/comma-separated-values",
+        #     "text/tab-separated-values",
+        #     "text/plain",
+        #     ".csv", ".tsv", ".txt", ".xlsx"
+        #   )
+        # ),
+        
+        htmltools::hr(),
+        
+        h3("1d. Choose AU to Use crosswalk file to load (optional):"),
+        shiny::radioButtons(
+          inputId = ns("input_UseXwalk_file_separator"),
+          label = "Choose file separator:",
+          choices = c(Comma = ",", Excel = "excel" , Tab = "\t"),
+          selected = ","
+        ),
+        shiny::uiOutput(ns("input_UseXwalk_file_ui")),
+        # shiny::fileInput(
+        #   inputId = ns("input_UseXwalk_file"),
+        #   label = "1e. Choose AU to Use crosswalk file to load (optional):",
+        #   width = "90%",
+        #   placeholder = "No file selected.",
+        #   multiple = FALSE,
+        #   accept = c(
+        #     "text/csv",
+        #     "text/comma-separated-values",
+        #     "text/tab-separated-values",
+        #     "text/plain",
+        #     ".csv", ".tsv", ".txt", ".xlsx"
+        #   )
+        # )
       ),
       
       # right column table
@@ -159,6 +180,66 @@ mod_load_file_server <- function(id, tadat){
     # get module session id
     ns <- session$ns
     
+    # Render dynamic file input for input_file
+    output$input_file_ui <- shiny::renderUI({
+      accept_types <- switch(
+        input$input_file_separator,
+        "," = c("text/csv", "text/comma-separated-values", ".csv"),
+        "excel" = c(".xlsx", ".xls"),
+        "\t" = c("text/tab-separated-values", "text/plain", ".tsv", ".txt"),
+        c(".csv", ".tsv", ".txt", ".xlsx", ".xls") # default
+      )
+      
+      shiny::fileInput(
+        inputId = ns("input_file"),
+        label = "Choose file to load:",
+        width = "90%",
+        placeholder = "No file selected.",
+        multiple = FALSE,
+        accept = accept_types
+      )
+    })
+    
+    # Render dynamic file input for input_Xwalk_file
+    output$input_Xwalk_file_ui <- shiny::renderUI({
+      accept_types <- switch(
+        input$input_Xwalk_file_separator,
+        "," = c("text/csv", "text/comma-separated-values", ".csv"),
+        "excel" = c(".xlsx", ".xls"),
+        "\t" = c("text/tab-separated-values", "text/plain", ".tsv", ".txt"),
+        c(".csv", ".tsv", ".txt", ".xlsx", ".xls") # default
+      )
+      
+      shiny::fileInput(
+        inputId = ns("input_Xwalk_file"),
+        label = "Choose file to load:",
+        width = "90%",
+        placeholder = "No file selected.",
+        multiple = FALSE,
+        accept = accept_types
+      )
+    })
+    
+    # Render dynamic file input for input_UseXwalk_file
+    output$input_UseXwalk_file_ui <- shiny::renderUI({
+      accept_types <- switch(
+        input$input_UseXwalk_file_separator,
+        "," = c("text/csv", "text/comma-separated-values", ".csv"),
+        "excel" = c(".xlsx", ".xls"),
+        "\t" = c("text/tab-separated-values", "text/plain", ".tsv", ".txt"),
+        c(".csv", ".tsv", ".txt", ".xlsx", ".xls") # default
+      )
+      
+      shiny::fileInput(
+        inputId = ns("input_UseXwalk_file"),
+        label = "Choose file to load:",
+        width = "90%",
+        placeholder = "No file selected.",
+        multiple = FALSE,
+        accept = accept_types
+      )
+    })
+    
     # Org name ####
     observe({
       req(tadat$df_ATTAINS_orgs)
@@ -198,7 +279,7 @@ mod_load_file_server <- function(id, tadat){
       message(
         paste0(
           format(Sys.time(), "%Y-%m-%d %H:%M:%S"), "\n",
-          "Monitoring Location Import, separator: '", input$separator, "'\n",
+          "Monitoring Location Import, separator: '", input$input_file_separator, "'\n",
           "Monitoring Location Import, file name: ", input$input_file$name, "\n",
           "Monitoring Location Import, file path: ", file_path_input, "\n",
           "Monitoring Location Import, file extension: ", file_ext_input, "\n"
@@ -208,7 +289,7 @@ mod_load_file_server <- function(id, tadat){
       # user notification that file is loaded
       shiny::showNotification(
         paste0(
-          "Import, separator: '", input$separator, "'\n",
+          "Import, separator: '", input$input_file_separator, "'\n",
           "Import, file name: ", input$input_file$name, "\n" #,
           # "Import, file path: ", input$input_file$datapath
         ),
@@ -219,7 +300,7 @@ mod_load_file_server <- function(id, tadat){
       # read user imported file based on extension
       if (file_ext_input %in% c("csv", "tsv", "txt")) {
         df_ml_input <- utils::read.delim(file_path_input, header = TRUE
-                                           , sep = input$separator
+                                           , sep = input$input_file_separator
                                            , stringsAsFactors = FALSE
                                            , na.strings = c("", "NA"))
       } else if (file_ext_input %in% c("xlsx", "xls")) {
@@ -280,7 +361,7 @@ mod_load_file_server <- function(id, tadat){
       message(
         paste0(
           format(Sys.time(), "%Y-%m-%d %H:%M:%S"), "\n",
-          "ML to AU Import, separator: '", input$separator, "'\n",
+          "ML to AU Import, separator: '", input$input_Xwalk_file_separator, "'\n",
           "ML to AU, file name: ", input$input_Xwalk_file$name, "\n",
           "ML to AU, file path: ", file_path_input_Xwalk, "\n",
           "ML to AU, file extension: ", file_ext_input_Xwalk, "\n"
@@ -290,7 +371,7 @@ mod_load_file_server <- function(id, tadat){
       # user notification that file is loaded
       shiny::showNotification(
         paste0(
-          "Import, separator: '", input$separator, "'\n",
+          "Import, separator: '", input$input_Xwalk_file_separator, "'\n",
           "Import, file name: ", input$input_Xwalk_file$name, "\n" #,
           # "Import, file path: ", input$input_file$datapath
         ),
@@ -301,7 +382,7 @@ mod_load_file_server <- function(id, tadat){
       # read user imported file based on extension
       if (file_ext_input_Xwalk %in% c("csv", "tsv", "txt")) {
         df_xwalk_input <- utils::read.delim(file_path_input_Xwalk, header = TRUE
-                                         , sep = input$separator
+                                         , sep = input$input_Xwalk_file_separator
                                          , stringsAsFactors = FALSE
                                          , na.strings = c("", "NA"))
       } else if (file_ext_input_Xwalk %in% c("xlsx", "xls")) {
@@ -315,8 +396,9 @@ mod_load_file_server <- function(id, tadat){
       
       # define required columns
       required_cols <- c("MonitoringLocationIdentifier",
-                         "AssessmentUnitIdentifier",
-                         "WaterType")
+                         "AssessmentUnitIdentifier"#,
+                         #"WaterType"
+                         )
       
       # get missing columns
       missing_cols <- setdiff(required_cols, names(df_xwalk_input))
@@ -358,7 +440,7 @@ mod_load_file_server <- function(id, tadat){
       message(
         paste0(
           format(Sys.time(), "%Y-%m-%d %H:%M:%S"), "\n",
-          "AU to Use, separator: '", input$separator, "'\n",
+          "AU to Use, separator: '", input$input_UseXwalk_file_separator, "'\n",
           "AU to Use, file name: ", input$input_UseXwalk_file$name, "\n",
           "AU to Use, file path: ", file_path_input_UseXwalk, "\n",
           "AU to Use, file extension: ", file_ext_input_UseXwalk, "\n"
@@ -368,7 +450,7 @@ mod_load_file_server <- function(id, tadat){
       # user notification that file is loaded
       shiny::showNotification(
         paste0(
-          "Import, separator: '", input$separator, "'\n",
+          "Import, separator: '", input$input_UseXwalk_file_separator, "'\n",
           "Import, file name: ", input$input_UseXwalk_file$name, "\n" #,
           # "Import, file path: ", input$input_file$datapath
         ),
@@ -379,7 +461,7 @@ mod_load_file_server <- function(id, tadat){
       # read user imported file based on extension
       if (file_ext_input_UseXwalk %in% c("csv", "tsv", "txt")) {
         df_UseXwalk_input <- utils::read.delim(file_path_input_UseXwalk, header = TRUE
-                                            , sep = input$separator
+                                            , sep = input$input_UseXwalk_file_separator
                                             , stringsAsFactors = FALSE
                                             , na.strings = c("", "NA"))
       } else if (file_ext_input_UseXwalk %in% c("xlsx", "xls")) {
