@@ -28,8 +28,8 @@ mod_load_file_ui <- function(id) {
         units (AUs) which can be exported. It also outputs an AU to designated 
         use table. In this tab, load an external water quality file before
         proceeding (required). The user has the option to upload an external
-        ML to AU crosswalk table. If the user does not provide this table, a 
-        within-app default table is used."),
+        ML to AU crosswalk table as well as an AU to use crosswalk table. 
+        If the user does not provide either table, defaults from ATTAINS will be used."),
         htmltools::strong("Instructions"),
         htmltools::p("The required input file for this app is a long-format data 
         file with MLs and water quality data (Step 1b). You can download a file 
@@ -37,9 +37,9 @@ mod_load_file_ui <- function(id) {
         or use the", htmltools::a("TADAShinyApp."
                           , href = "https://rconnect-public.epa.gov/TADAShiny/"
                           , target = "_blank")),
-        htmltools::p("The optional input file for this app is a long-format data 
-        file with MLs and AUs (Step 1c). The input fields are 
-        'MonitoringLocationIdentifier' and 'AssessmentUnitIdentifier'."),
+        htmltools::p("The optional input files for this app is 1) a long-format data 
+        file with MLs and AUs (Step 1c) and 2) a long-format data file with AUs and
+        uses (Step 1d). Required fields are noted in each section."),
         htmltools::p(paste0("Note: Loaded file sizes are limited to a 
                             maximum size of ", get_golem_config("MB_LIMIT")
                             , " MB.")),
@@ -59,24 +59,12 @@ mod_load_file_ui <- function(id) {
           selected = ","
         ),
         shiny::uiOutput(ns("input_file_ui")),
-        # shiny::fileInput(
-        #   inputId = ns("input_file"),
-        #   label = "1b. Choose water quality file to load (required):",
-        #   width = "90%",
-        #   placeholder = "No file selected.",
-        #   multiple = FALSE,
-        #   accept = c(
-        #     "text/csv",
-        #     "text/comma-separated-values",
-        #     "text/tab-separated-values",
-        #     "text/plain",
-        #     ".csv", ".tsv", ".txt", ".xlsx"
-        #   )
-        # ), 
         
         htmltools::hr(),
         
         h3("1c. Choose ML to AU crosswalk file to load (optional):"),
+        htmltools::p("Required fields include: MonitoringLocationIdentifier 
+                     and AssessmentUnitIdentifier."), 
         shiny::radioButtons(
           inputId = ns("input_Xwalk_file_separator"),
           label = "Choose file separator:",
@@ -84,24 +72,13 @@ mod_load_file_ui <- function(id) {
           selected = ","
         ),
         shiny::uiOutput(ns("input_Xwalk_file_ui")),
-        #   shiny::fileInput(
-        #   inputId = ns("input_Xwalk_file"),
-        #   label = "1d. Choose ML to AU crosswalk file to load (optional):",
-        #   width = "90%",
-        #   placeholder = "No file selected.",
-        #   multiple = FALSE,
-        #   accept = c(
-        #     "text/csv",
-        #     "text/comma-separated-values",
-        #     "text/tab-separated-values",
-        #     "text/plain",
-        #     ".csv", ".tsv", ".txt", ".xlsx"
-        #   )
-        # ),
         
         htmltools::hr(),
         
         h3("1d. Choose AU to Use crosswalk file to load (optional):"),
+        htmltools::p("Required fields include: ATTAINS.OrganizationIdentifier
+        , ATTAINS.AssessmentUnitIdentifier, ATTAINS.UseName, ATTAINS.WaterType          
+        , TADA.AssessmentUnitStatus, and IncludeOrExclude."), 
         shiny::radioButtons(
           inputId = ns("input_UseXwalk_file_separator"),
           label = "Choose file separator:",
@@ -109,20 +86,6 @@ mod_load_file_ui <- function(id) {
           selected = ","
         ),
         shiny::uiOutput(ns("input_UseXwalk_file_ui")),
-        # shiny::fileInput(
-        #   inputId = ns("input_UseXwalk_file"),
-        #   label = "1e. Choose AU to Use crosswalk file to load (optional):",
-        #   width = "90%",
-        #   placeholder = "No file selected.",
-        #   multiple = FALSE,
-        #   accept = c(
-        #     "text/csv",
-        #     "text/comma-separated-values",
-        #     "text/tab-separated-values",
-        #     "text/plain",
-        #     ".csv", ".tsv", ".txt", ".xlsx"
-        #   )
-        # )
       ),
       
       # right column table

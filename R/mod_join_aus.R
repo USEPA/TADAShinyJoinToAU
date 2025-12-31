@@ -38,23 +38,19 @@ mod_join_aus_ui <- function(id) {
         htmltools::strong("Purpose"),
         htmltools::p("This app joins monitoring locations (MLs) to assessment
         units (AUs) which can be exported. It also outputs an AU to designated 
-        use table. In this tab, first join the MLs to AUs, then review the 
-                     results, and lastly, download the data for external review."),
-        htmltools::p("Note: A within-app default ML to AU crosswalk table is 
-                     used if one is not uploaded on Tab 1 (Step 1c)."),
+        use table. In this tab, data can be reviewed via tables and an interactive map.
+        Then download the data for external review."),
         htmltools::strong("Instructions"),
         htmltools::p("Click on the button below to join MLs to AUs and their 
                      designated uses (Step 2a). Once the process is completed, 
                      summary tables and a map will be generated (see right). 
-                     Lastly, the results will be downloaded for external review 
+                     Lastly, the results can be downloaded for external review 
                      (Step 2b)."),
         htmltools::strong("Review"), 
         htmltools::p("After downloading, please review the tables for accuracy 
-                     before proceeding to the analysis module. Pay particular 
-                     attention to the 'Needs_Review', 'Source', and 'FLAG' 
-                     fields. The user needs to confirm that the correct AU is 
-                     assigned to each ML (JoinToAU.AssessmentUnitIdentifier 
-                     field)."),
+                     before proceeding to the analysis module. The user needs to 
+                     confirm that the correct AU is assigned to each ML and 
+                     that the correct uses are assigned to each AU."),
         htmltools::h3("2a. Join Monitoring Locations to AUs and Uses"),
         htmltools::p("Click on the button below."),
         shiny::actionButton(
@@ -227,15 +223,6 @@ mod_join_aus_server <- function(id, tadat){
         # log to command line
         message("Create AU/Use crosswalk...")
         # get uses
-        # if(exists("df_UseXwalk_input")){
-        #   df_UseAURef <- EPATADA::TADA_CreateUseAURef(AUMLRef = df_AUMLRef
-        #                                           , useAURef = df_UseXwalk_input
-        #                                           , org_id = myOrg)
-        # } else {
-        #   df_UseAURef <- EPATADA::TADA_CreateUseAURef(AUMLRef = df_AUMLRef
-        #                                               , useAURef = NULL
-        #                                               , org_id = myOrg)
-        # } # end
         if(exists("df_UseXwalk_input")){
           df_UseAURef <- EPATADA::TADA_AssignUsesToAU(AUMLRef = df_AUMLRef
                                                       , AU_UsesRef= df_UseXwalk_input
