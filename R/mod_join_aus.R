@@ -162,7 +162,32 @@ mod_join_aus_server <- function(id, tadat){
           return(NULL)
         }
         
+        # qc check for required fields
+        #  Required columns
+        required_cols <- c("ResultIdentifier", "TADA.MonitoringLocationName"
+                           , "TADA.LatitudeMeasure", "TADA.LongitudeMeasure"
+                           , "HorizontalCoordinateReferenceSystemDatumName"
+                           , "TADA.MonitoringLocationIdentifier"
+                           , "TADA.CharacteristicName", "ActivityStartDate"
+                           , "OrganizationIdentifier")
+        
+        missing_cols <- setdiff(required_cols, colnames(df_ml_data))
+        
+        if (length(missing_cols) > 0) {
+          stop(paste("The following required columns are missing from the
+             df_WQ_Input dataframe:",
+                     paste(missing_cols, collapse = ", ")))
+        } # End ~ if statement
+        
+        # qc ensure input format matches TADA expectations
+        # otherwise coerce
+        df_ml_data <- df_ml_data |>
+          # use new internal TADA function for conversion
+          EPATADA:::correctColType()
+        
         #### 2. Create ML/AU crosswalk ####
+        # log to command line
+        message("Create ML/AU crosswalk...")
     
         # increment progress bar, and update the detail text
         shiny::incProgress(amount = 1/n_inc
@@ -172,14 +197,14 @@ mod_join_aus_server <- function(id, tadat){
         # browser()
         
         if(exists("df_xwalk_input")){
-          suppressWarnings(df_AUMLRef_list <- EPATADA::TADA_CreateAUMLCrosswalk(
+          suppressWarnings(AUMLRef_list <- EPATADA::TADA_CreateAUMLCrosswalk(
             df_ml_data,
             au_ref = df_xwalk_input,
             org_id = myOrg,
             batch_upload = FALSE))
 
         } else {
-          suppressWarnings(df_AUMLRef_list <- EPATADA::TADA_CreateAUMLCrosswalk(
+          suppressWarnings(AUMLRef_list <- EPATADA::TADA_CreateAUMLCrosswalk(
             df_ml_data,
             au_ref = NULL,
             org_id = myOrg,
@@ -192,21 +217,32 @@ mod_join_aus_server <- function(id, tadat){
         Sys.sleep(0.25)
         
         # Pull out crosswalk
-        df_AUMLRef <- df_AUMLRef_list$ATTAINS_crosswalk
+        df_AUMLRef <- AUMLRef_list$ATTAINS_crosswalk
         
         # increment progress bar, and update the detail text
         shiny::incProgress(amount = 1/n_inc, detail = "Fetching uses...")
         Sys.sleep(0.25)
         
         #### 3. Create AU/Use crosswalk####
+        # log to command line
+        message("Create AU/Use crosswalk...")
         # get uses
+        # if(exists("df_UseXwalk_input")){
+        #   df_UseAURef <- EPATADA::TADA_CreateUseAURef(AUMLRef = df_AUMLRef
+        #                                           , useAURef = df_UseXwalk_input
+        #                                           , org_id = myOrg)
+        # } else {
+        #   df_UseAURef <- EPATADA::TADA_CreateUseAURef(AUMLRef = df_AUMLRef
+        #                                               , useAURef = NULL
+        #                                               , org_id = myOrg)
+        # } # end
         if(exists("df_UseXwalk_input")){
-          df_UseAURef <- EPATADA::TADA_CreateUseAURef(AUMLRef = df_AUMLRef
-                                                  , useAURef = df_UseXwalk_input
-                                                  , org_id = myOrg)
+          df_UseAURef <- EPATADA::TADA_AssignUsesToAU(AUMLRef = df_AUMLRef
+                                                      , AU_UsesRef= df_UseXwalk_input
+                                                      , org_id = myOrg)
         } else {
-          df_UseAURef <- EPATADA::TADA_CreateUseAURef(AUMLRef = df_AUMLRef
-                                                      , useAURef = NULL
+          df_UseAURef <- EPATADA::TADA_AssignUsesToAU(AUMLRef = df_AUMLRef
+                                                      , AU_UsesRef = NULL
                                                       , org_id = myOrg)
         } # end
         
@@ -216,22 +252,23 @@ mod_join_aus_server <- function(id, tadat){
         message("Run QC checks...")
         
         # add extra fields to ML to AU ref
-        df_AUMLRef_v2 <- df_AUMLRef %>% 
+        df_AUMLRef_v2 <- df_AUMLRef |> 
           dplyr::mutate(Needs_Review = dplyr::case_when(
             (TADA.AURefSource == "TADA_CreateATTAINSAUMLCrosswalk"
              | TADA.AURefSource == "User-supplied Ref") ~ "Yes"
             , TRUE ~ "No"))
         
         # check all sites are there
-        df_ml_data_miss_sites <- df_ml_data %>% 
+        df_ml_data_miss_sites <- df_ml_data |> 
           dplyr::filter(!(TADA.MonitoringLocationIdentifier 
-                   %in% df_AUMLRef$TADA.MonitoringLocationIdentifier)) %>% 
-          dplyr::select(TADA.MonitoringLocationIdentifier) %>% 
-          dplyr::distinct() %>% 
+                   %in% df_AUMLRef$TADA.MonitoringLocationIdentifier)) |> 
+          dplyr::select(TADA.MonitoringLocationIdentifier) |> 
+          dplyr::distinct() |> 
           dplyr::mutate(ATTAINS.AssessmentUnitIdentifier = NA_character_
                  , ATTAINS.WaterType = NA_character_
                  , TADA.AURefSource = "No AU source found"
                  , ATTAINS.OrganizationIdentifier = NA_character_
+                 , OrganizationIdentifier = NA_character_
                  , Needs_Review = "Yes")
         
         if(nrow(df_ml_data_miss_sites) > 0){
@@ -245,6 +282,8 @@ mod_join_aus_server <- function(id, tadat){
         Sys.sleep(0.25)
         
         #### 5. display summary ####
+        # log to command line
+        message("Summary information...")
         
         # render summary
         output$join_summary <- shiny::renderText({
@@ -289,7 +328,8 @@ mod_join_aus_server <- function(id, tadat){
         })
         
         #### 6. display data in tables ####
-        
+        # log to command line
+        message("Display data in tables...")
         # show ml to use data as simple table (no selection)
         output$df_ml_results_dt <- DT::renderDT({
           
@@ -332,11 +372,15 @@ mod_join_aus_server <- function(id, tadat){
         
         
         #### 7. display data map ####
+        # log to command line
+        message("Display data map...")
         
         # show map
-        output$join_map <- shiny::renderUI(EPATADA::TADA_ViewATTAINS(df_AUMLRef_list))
+        output$join_map <- shiny::renderUI(EPATADA::TADA_ViewATTAINS(AUMLRef_list))
         
         #### 8. save results ####
+        # log to command line
+        message("Save results...")
 
         # append to tadat
         tadat$df_AUMLRef <- df_AUMLRef_v3
@@ -370,7 +414,7 @@ mod_join_aus_server <- function(id, tadat){
               default_outfile <- tadat$default_outfile
               job_id <- tadat$job_id
               df_ml_input <- tadat$df_ml_input
-              df_mltoau_for_review <- tadat$df_AUMLRef_v3
+              df_mltoau_for_review <- tadat$df_AUMLRef
               df_autouse_for_review <- tadat$df_UseAURef
               temp_dir <- tadat$temp_dir
               
@@ -392,7 +436,7 @@ mod_join_aus_server <- function(id, tadat){
             # utils::write.csv(df_autouse_review, tmpfile2, row.names = FALSE)
             readr::write_csv(x = as.data.frame(tadat$df_ml_input)
                              , file = ml_input_file_path)
-            readr::write_csv(x = as.data.frame(tadat$df_AUMLRef_v3)
+            readr::write_csv(x = as.data.frame(tadat$df_AUMLRef)
                              , file = mltoaus_file_path)
             readr::write_csv(x = as.data.frame(tadat$df_UseAURef)
                              , file = autouse_file_path)
