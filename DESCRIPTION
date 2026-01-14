@@ -20,15 +20,12 @@ Imports:
     golem,
     gotop,
     htmltools,
-    leaflet,
     readr,
-    sf,
     shiny,
     shinyjs,
-    stats,
-    tidyr,
     utils,
-    readxl
+    readxl,
+    rExpertQuery
 Remotes:
     USEPA/EPATADA@develop
 Encoding: UTF-8
