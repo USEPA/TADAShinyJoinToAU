@@ -607,7 +607,6 @@ mod_load_file_server <- function(id, tadat){
 # TODO add shiny validate for file size
 # TODO reorder columns in df_ml_input before DT stuff
 
-    
 ## To be copied in the UI
 # mod_load_file_ui("load_file_1")
     
