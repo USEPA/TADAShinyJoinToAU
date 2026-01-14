@@ -60,8 +60,33 @@ rsconnect::deployApp(
   forceUpdate = TRUE
 )
 
-# This is how to deploy to EPA's Posit Connect
-# golem::add_positconnect_file() # already exists
-# run these (update path)
-options(rsconnect.packrat = TRUE)
-rsconnect::deployApp("path/to/the/app")
+# Deploy to EPA Posit Connect----
+
+# This is how to add the shiny sever file needed for any deployment
+# golem::add_shinyserver_file() # already exists
+
+# This is how to setup deployment to EPA's Posit Connect
+# golem::add_positconnect_file() # already exists see rsconnect folder
+
+# This is how to deploy, works for both TT shinyappsio and EPA posit connect
+# Detach all loaded packages and clean your environment
+golem::detach_all_attached()
+# Document and reload your package
+golem::document_and_reload()
+# Use packrat
+# options(rsconnect.packrat = TRUE) # already done
+# Deploy app to staging
+# https://rstudio-connect.dmap-stage.aws.epa.gov/content/a2c7b06d-a095-4bb0-8bbe-084038ac8a0b/
+rsconnect::deployApp(
+  appDir = getwd(),
+  appFiles = c("app.R", "DESCRIPTION", "NAMESPACE", "R/", "inst/"),
+  appName = "TADAShinyJoinToAU",
+  appTitle = "TADAShiny Module 2 Join WQP Monitoring Locations to ATTAINS Assessment Units and Uses",
+  launch.browser = TRUE,
+  forceUpdate = TRUE,
+  appId = 1023
+)
+
+# To deploy to EPA posit connect production (public)
+# We must reach out to the DMAP team
+# Add public URL here when ready
