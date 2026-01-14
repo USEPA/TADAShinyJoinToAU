@@ -1,0 +1,10 @@
+name: tadashinyjointoau
+title: TADAShinyJoinToAU
+username: Cristina
+account: Cristina
+server: rstudio-connect.dmap-stage.aws.epa.gov
+hostUrl: https://rstudio-connect.dmap-stage.aws.epa.gov/__api__
+appId: 980
+bundleId: 7422
+url: https://rstudio-connect.dmap-stage.aws.epa.gov/content/32a2ff74-35e3-46ee-a623-9603e811a78c/
+version: 1
