@@ -1,5 +1,3 @@
-^renv$
-^renv\.lock$
 ^.*\.Rproj$
 ^\.Rproj\.user$
 .rscignore
@@ -7,8 +5,8 @@
 ^CONTRIBUTING\.md$
 ^LICENSE\.md$
 ^app\.R$
-^data-raw/
-^dev/
 ^manifest\.json$
-^rsconnect/
 _disable_autoload.R
+^data-raw$
+^dev$
+^rsconnect$
