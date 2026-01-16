@@ -66,9 +66,7 @@ testServer(app_server, {
 })
 
 # Configure this test to fit your need
-test_that(
-  "app launches",
-  {
-    golem::expect_running(sleep = 5)
-  }
-)
+test_that("app launches", {
+  rlang::local_interactive(TRUE)
+  golem::expect_running(sleep = 5)
+})

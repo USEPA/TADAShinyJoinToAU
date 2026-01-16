@@ -148,15 +148,9 @@ tagRemoveAttributes <- function(tag, ...) {
 #' undisplay(b)
 #' @importFrom shiny tagList
 undisplay <- function(tag) {
-  # if not already hidden
-  if (
-    !is.null(tag$attribs$style) &&
-      !grepl("display:\\s+none", tag$attribs$style)
-  ) {
-    tag$attribs$style <- paste(
-      "display: none;",
-      tag$attribs$style
-    )
+  if (!is.null(tag$attribs$style) &&
+      !grepl("\\bdisplay\\s*:\\s*none\\b", tag$attribs$style)) {
+    tag$attribs$style <- paste("display: none;", tag$attribs$style)
   } else {
     tag$attribs$style <- "display: none;"
   }
