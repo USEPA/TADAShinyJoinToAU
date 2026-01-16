@@ -70,6 +70,8 @@ rsconnect::deployApp(
 
 # This is how to deploy, works for both TT shinyappsio and EPA posit connect
 
+# install.packages("rsconnect") # update to latest
+
 # Detach all loaded packages and clean your environment
 golem::detach_all_attached()
 
@@ -81,7 +83,6 @@ golem::document_and_reload()
 
 # Deploy app to staging
 # https://rstudio-connect.dmap-stage.aws.epa.gov/content/a2c7b06d-a095-4bb0-8bbe-084038ac8a0b/
-install.packages("rsconnect") # update to latest
 # do not edit below
 rsconnect::deployApp(
   appDir = getwd(),

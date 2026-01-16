@@ -36,17 +36,3 @@ golem::document_and_reload()
 
 # Run the application
 run_app()
-
-# use renv
-
-# first time run
-renv::init()
-# chose option 2 there are dependencies beyond what's listed
-
-# whenever update packages
-# run this before deploying (regularly)
-renv::snapshot()
-
-# load
-# renv::activate() # this is for all sessions and project (long-term)
-# renv::load() # this is only one session (temporary)
