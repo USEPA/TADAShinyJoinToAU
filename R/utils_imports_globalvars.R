@@ -28,9 +28,10 @@ NULL
 NULL
 
 # Silence NSE binding notes for common data.table symbols
-utils::globalVariables(c("ATTAINS.AssessmentUnitIdentifier", 
-                         "ATTAINS.WaterType",
-                         "TADA.AURefSource",
-                         "TADA.MonitoringLocationIdentifier",
-                         "name"
+utils::globalVariables(c(
+  "ATTAINS.AssessmentUnitIdentifier",
+  "ATTAINS.WaterType",
+  "TADA.AURefSource",
+  "TADA.MonitoringLocationIdentifier",
+  "name"
 ))

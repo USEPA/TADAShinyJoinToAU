@@ -79,30 +79,30 @@ test_that("Test tagRemoveAttributes works", {
 
 test_that("Test undisplay works (button HTML)", {
   b <- shiny::actionButton("go_filter", "go")
-  
+
   expected <- paste(
     '<button id="go_filter" type="button" class="btn btn-default action-button">',
     '  <span class="action-label">go</span>',
-    '</button>',
+    "</button>",
     sep = "\n"
   )
-  
+
   expect_equal(as.character(b), expected)
 })
 
 test_that("Test undisplay works (undisplay HTML)", {
   b <- shiny::actionButton("go_filter", "go")
-  
+
   # Use internal undisplay() helper
   b_undisplay <- undisplay(b)
 
   expected_undisplay <- paste(
     '<button id="go_filter" type="button" class="btn btn-default action-button" style="display: none;">',
     '  <span class="action-label">go</span>',
-    '</button>',
+    "</button>",
     sep = "\n"
   )
-  
+
   expect_equal(as.character(b_undisplay), expected_undisplay)
 })
 
@@ -209,4 +209,3 @@ test_that("Test make_action_button works", {
     inputId = "someID"
   )
 })
-

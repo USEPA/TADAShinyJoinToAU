@@ -149,7 +149,7 @@ tagRemoveAttributes <- function(tag, ...) {
 #' @importFrom shiny tagList
 undisplay <- function(tag) {
   if (!is.null(tag$attribs$style) &&
-      !grepl("\\bdisplay\\s*:\\s*none\\b", tag$attribs$style)) {
+    !grepl("\\bdisplay\\s*:\\s*none\\b", tag$attribs$style)) {
     tag$attribs$style <- paste("display: none;", tag$attribs$style)
   } else {
     tag$attribs$style <- "display: none;"
@@ -209,7 +209,6 @@ with_red_star <- function(text) {
     )
   )
 }
-
 
 
 #' Repeat tags$br
@@ -291,7 +290,6 @@ col_2 <- function(...) {
 col_1 <- function(...) {
   column(1, ...)
 }
-
 
 
 #' Make the current tag behave like an action button
@@ -408,6 +406,3 @@ make_action_button <- function(tag, inputId = NULL) {
 get_df_ATTAINS_orgs <- function() {
   rExpertQuery::EQ_DomainValues("org_id")
 }
-
-
-
