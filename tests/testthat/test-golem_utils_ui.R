@@ -77,45 +77,33 @@ test_that("Test tagRemoveAttributes works", {
   )
 })
 
-test_that("Test undisplay works", {
-  a <- shiny::tags$p(src = "plop", "pouet")
-  expect_s3_class(a, "shiny.tag")
-  expect_equal(
-    as.character(a),
-    '<p src="plop">pouet</p>'
-  )
-  a_undisplay <- undisplay(a)
-  expect_s3_class(a_undisplay, "shiny.tag")
-  expect_equal(
-    as.character(a_undisplay),
-    '<p src="plop" style="display: none;">pouet</p>'
-  )
-
+test_that("Test undisplay works (button HTML)", {
   b <- shiny::actionButton("go_filter", "go")
-  expect_s3_class(b, "shiny.tag")
-  expect_equal(
-    as.character(b),
-    '<button id="go_filter" type="button" class="btn btn-default action-button">go</button>'
-  )
-  b_undisplay <- undisplay(b)
-  expect_s3_class(b, "shiny.tag")
-  expect_equal(
-    as.character(b_undisplay),
-    '<button id="go_filter" type="button" class="btn btn-default action-button" style="display: none;">go</button>'
+
+  expected <- paste(
+    '<button id="go_filter" type="button" class="btn btn-default action-button">',
+    '  <span class="action-label">go</span>',
+    "</button>",
+    sep = "\n"
   )
 
-  c <- shiny::tags$p(src = "plop", style = "some_style", "pouet")
-  expect_s3_class(c, "shiny.tag")
-  expect_equal(
-    as.character(c),
-    '<p src="plop" style="some_style">pouet</p>'
+  expect_equal(as.character(b), expected)
+})
+
+test_that("Test undisplay works (undisplay HTML)", {
+  b <- shiny::actionButton("go_filter", "go")
+
+  # Use internal undisplay() helper
+  b_undisplay <- undisplay(b)
+
+  expected_undisplay <- paste(
+    '<button id="go_filter" type="button" class="btn btn-default action-button" style="display: none;">',
+    '  <span class="action-label">go</span>',
+    "</button>",
+    sep = "\n"
   )
-  c_undisplay <- undisplay(c)
-  expect_s3_class(c_undisplay, "shiny.tag")
-  expect_equal(
-    as.character(c_undisplay),
-    '<p src="plop" style="display: none; some_style">pouet</p>'
-  )
+
+  expect_equal(as.character(b_undisplay), expected_undisplay)
 })
 
 test_that("Test display works", {

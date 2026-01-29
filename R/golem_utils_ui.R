@@ -148,15 +148,9 @@ tagRemoveAttributes <- function(tag, ...) {
 #' undisplay(b)
 #' @importFrom shiny tagList
 undisplay <- function(tag) {
-  # if not already hidden
-  if (
-    !is.null(tag$attribs$style) &&
-      !grepl("display:\\s+none", tag$attribs$style)
-  ) {
-    tag$attribs$style <- paste(
-      "display: none;",
-      tag$attribs$style
-    )
+  if (!is.null(tag$attribs$style) &&
+    !grepl("\\bdisplay\\s*:\\s*none\\b", tag$attribs$style)) {
+    tag$attribs$style <- paste("display: none;", tag$attribs$style)
   } else {
     tag$attribs$style <- "display: none;"
   }
@@ -215,7 +209,6 @@ with_red_star <- function(text) {
     )
   )
 }
-
 
 
 #' Repeat tags$br
@@ -297,7 +290,6 @@ col_2 <- function(...) {
 col_1 <- function(...) {
   column(1, ...)
 }
-
 
 
 #' Make the current tag behave like an action button
@@ -403,3 +395,14 @@ make_action_button <- function(tag, inputId = NULL) {
 #
 #   return(HTML(html))
 # }
+
+
+#' Get valid ATTAINS organization names
+#'
+#' This helper fetches domain values for org_id from rExpertQuery
+#' and returns the name column for use in UI components.
+#'
+#' @return A character vector of organization names
+get_df_ATTAINS_orgs <- function() {
+  rExpertQuery::EQ_DomainValues("org_id")
+}

@@ -16,39 +16,53 @@ library(usethis)
 # mt, co, and sd are still in progress so just select from nd, wy, ut for now
 
 # nd streams
-mltoau_nd_streams_raw <- read_xlsx(path = here::here("data-raw", "R8_MLtoAU_Review_All_States_20250602.xlsx"),
-                                   sheet = "ND_Streams",
-                                   col_names = TRUE)
+mltoau_nd_streams_raw <- read_xlsx(
+  path = here::here("data-raw", "R8_MLtoAU_Review_All_States_20250602.xlsx"),
+  sheet = "ND_Streams",
+  col_names = TRUE
+)
 
 # nd lakes
-mltoau_nd_lakes_raw <- read_xlsx(path = here::here("data-raw", "R8_MLtoAU_Review_All_States_20250602.xlsx"),
-                                   sheet = "ND_Lakes",
-                                   col_names = TRUE)
+mltoau_nd_lakes_raw <- read_xlsx(
+  path = here::here("data-raw", "R8_MLtoAU_Review_All_States_20250602.xlsx"),
+  sheet = "ND_Lakes",
+  col_names = TRUE
+)
 
 # ut streams
-mltoau_ut_streams_raw <- read_xlsx(path = here::here("data-raw", "R8_MLtoAU_Review_All_States_20250602.xlsx"),
-                                   sheet = "UT_Streams",
-                                   col_names = TRUE)
+mltoau_ut_streams_raw <- read_xlsx(
+  path = here::here("data-raw", "R8_MLtoAU_Review_All_States_20250602.xlsx"),
+  sheet = "UT_Streams",
+  col_names = TRUE
+)
 
 # ut lakes
-mltoau_ut_lakes_raw <- read_xlsx(path = here::here("data-raw", "R8_MLtoAU_Review_All_States_20250602.xlsx"),
-                                 sheet = "UT_Lakes",
-                                 col_names = TRUE)
+mltoau_ut_lakes_raw <- read_xlsx(
+  path = here::here("data-raw", "R8_MLtoAU_Review_All_States_20250602.xlsx"),
+  sheet = "UT_Lakes",
+  col_names = TRUE
+)
 
 # wy streams
-mltoau_wy_streams_raw <- read_xlsx(path = here::here("data-raw", "R8_MLtoAU_Review_All_States_20250602.xlsx"),
-                                   sheet = "WY_Streams",
-                                   col_names = TRUE)
+mltoau_wy_streams_raw <- read_xlsx(
+  path = here::here("data-raw", "R8_MLtoAU_Review_All_States_20250602.xlsx"),
+  sheet = "WY_Streams",
+  col_names = TRUE
+)
 
 # wy lakes
-mltoau_wy_lakes_raw <- read_xlsx(path = here::here("data-raw", "R8_MLtoAU_Review_All_States_20250602.xlsx"),
-                                 sheet = "WY_Lakes",
-                                 col_names = TRUE)
+mltoau_wy_lakes_raw <- read_xlsx(
+  path = here::here("data-raw", "R8_MLtoAU_Review_All_States_20250602.xlsx"),
+  sheet = "WY_Lakes",
+  col_names = TRUE
+)
 
 # load au to uses data
 # this data was obtained from attains by ben using the code below this section
-autouse_raw <- read_csv(file = here::here("data-raw", "R8_ATTAINS_AU_Uses_Long_20250602.csv"),
-                        col_names = TRUE)
+autouse_raw <- read_csv(
+  file = here::here("data-raw", "R8_ATTAINS_AU_Uses_Long_20250602.csv"),
+  col_names = TRUE
+)
 
 
 # ---- ml to au crosswalk for all r8 states ----
@@ -82,11 +96,14 @@ mltoau_wy_lakes <- mltoau_wy_lakes_raw |>
 
 
 # merge datasets
-mltoau_crosswalk_raw <- bind_rows(mltoau_nd_streams, mltoau_nd_lakes,
-                           mltoau_ut_streams, mltoau_ut_lakes,
-                           mltoau_wy_streams, mltoau_wy_lakes) |>
+mltoau_crosswalk_raw <- bind_rows(
+  mltoau_nd_streams, mltoau_nd_lakes,
+  mltoau_ut_streams, mltoau_ut_lakes,
+  mltoau_wy_streams, mltoau_wy_lakes
+) |>
   mutate(AssessmentUnitIdentifier = case_when(AU_ID_Final == "-999999" ~ NA,
-                                 .default = AU_ID_Final)) |>
+    .default = AU_ID_Final
+  )) |>
   select(-AU_ID_Final)
 
 # simplify
@@ -126,65 +143,63 @@ library(purrr)
 
 # function to pull data by state
 get_state_attains_uses <- function(state_abrv = "ND") {
-  
   # define url
   attains_url <- "https://attains.epa.gov/attains-public/api/assessments?state="
-  
+
   # append state abbreviation
   temp_url <- paste0(attains_url, state_abrv)
-  
+
   # make the get request
   temp_response <- httr::GET(temp_url)
-  
+
   # check if the request was successful
   if (status_code(temp_response) == 200) {
-    
     # parse the json content
     temp_data <- content(temp_response, as = "text", encoding = "UTF-8")
-    
+
     # flatten
     temp_parsed_data <- fromJSON(temp_data, flatten = TRUE)
-    
+
     # View the structure of the parsed data
     # str(temp_parsed_data)
-    
+
     # convert to a data frame
     temp_df <- as.data.frame(temp_parsed_data$items) # Adjust based on actual structure
-    
+
     # check
     # head(temp_df)
-    
+
     # pull out assessment data
     # unnest the assessments column
     temp_df_unnested <- temp_df |>
       unnest(assessments, names_sep = "_")
-    
+
     temp_df_unnested_v2 <- temp_df_unnested |>
       unnest(assessments_useAttainments, names_sep = "_")
-    
+
     # trim data
-    temp_df_final <- temp_df_unnested_v2 |> 
-      select(organizationIdentifier,
-             organizationName,
-             organizationTypeText,
-             reportingCycleText,
-             assessments_assessmentUnitIdentifier,
-             assessments_useAttainments_useName,
-             assessments_cycleLastAssessedText,
-             assessments_yearLastMonitoredText) |> 
+    temp_df_final <- temp_df_unnested_v2 |>
+      select(
+        organizationIdentifier,
+        organizationName,
+        organizationTypeText,
+        reportingCycleText,
+        assessments_assessmentUnitIdentifier,
+        assessments_useAttainments_useName,
+        assessments_cycleLastAssessedText,
+        assessments_yearLastMonitoredText
+      ) |>
       distinct()
-    
+
     # print
     print("Obtained data successfully.\n")
-    
+
     # return
     return(temp_df_final)
-
   } else {
-    
     # print
     print(paste0("Failed to retrieve data. Status code:", status_code(temp_response), "\n"))
-    
+
     # return null
     return(NULL)
   }
@@ -200,65 +215,63 @@ df_wy <- get_state_attains_uses(state_abrv = "WY")
 
 # function to pull data by tribe
 get_tribe_attains_uses <- function(tribe_abrv = "BLCKFEET") {
-  
   # define url
   attains_url <- "https://attains.epa.gov/attains-public/api/assessments?organizationId="
-  
+
   # append state abbreviation
   temp_url <- paste0(attains_url, tribe_abrv)
-  
+
   # make the get request
   temp_response <- httr::GET(temp_url)
-  
+
   # check if the request was successful
   if (status_code(temp_response) == 200) {
-    
     # parse the json content
     temp_data <- content(temp_response, as = "text", encoding = "UTF-8")
-    
+
     # flatten
     temp_parsed_data <- fromJSON(temp_data, flatten = TRUE)
-    
+
     # View the structure of the parsed data
     # str(temp_parsed_data)
-    
+
     # convert to a data frame
     temp_df <- as.data.frame(temp_parsed_data$items) # Adjust based on actual structure
-    
+
     # check
     # head(temp_df)
-    
+
     # pull out assessment data
     # unnest the assessments column
     temp_df_unnested <- temp_df |>
       unnest(assessments, names_sep = "_")
-    
+
     temp_df_unnested_v2 <- temp_df_unnested |>
       unnest(assessments_useAttainments, names_sep = "_")
-    
+
     # trim data
-    temp_df_final <- temp_df_unnested_v2 |> 
-      select(organizationIdentifier,
-             organizationName,
-             organizationTypeText,
-             reportingCycleText,
-             assessments_assessmentUnitIdentifier,
-             assessments_useAttainments_useName,
-             assessments_cycleLastAssessedText,
-             assessments_yearLastMonitoredText) |> 
+    temp_df_final <- temp_df_unnested_v2 |>
+      select(
+        organizationIdentifier,
+        organizationName,
+        organizationTypeText,
+        reportingCycleText,
+        assessments_assessmentUnitIdentifier,
+        assessments_useAttainments_useName,
+        assessments_cycleLastAssessedText,
+        assessments_yearLastMonitoredText
+      ) |>
       distinct()
-    
+
     # print
     print("Obtained data successfully.\n")
-    
+
     # return
     return(temp_df_final)
-    
   } else {
-    
     # print
     print(paste0("Failed to retrieve data. Status code:", status_code(temp_response), "\n"))
-    
+
     # return null
     return(NULL)
   }
@@ -278,42 +291,54 @@ df_umu <- get_tribe_attains_uses(tribe_abrv = "UTEMTN")
 # Southern Ute
 
 # Pull in updated WY crosswalk
-WY_raw <- read_csv(file = here::here("data-raw"
-        , "WYDEQ_uses_report_ATTAINS_2024OrganizationFinalAction_07_17_2025.csv"),
-                        col_names = TRUE)
+WY_raw <- read_csv(
+  file = here::here(
+    "data-raw",
+    "WYDEQ_uses_report_ATTAINS_2024OrganizationFinalAction_07_17_2025.csv"
+  ),
+  col_names = TRUE
+)
 
 df_WY_formatted <- WY_raw |>
   select(ASSESSMENT_UNIT_ID, USE_NAME) |>
-  mutate(organizationIdentifier = "WYDEQ"
-         , organizationName = "Wyoming"
-         , organizationTypeText = "State"
-         , reportingCycleText = "2025"
-         , assessments_cycleLastAssessedText = NA
-         , assessments_yearLastMonitoredText = NA) %>% 
-  rename(assessments_assessmentUnitIdentifier = ASSESSMENT_UNIT_ID
-         , assessments_useAttainments_useName = USE_NAME)
+  mutate(
+    organizationIdentifier = "WYDEQ",
+    organizationName = "Wyoming",
+    organizationTypeText = "State",
+    reportingCycleText = "2025",
+    assessments_cycleLastAssessedText = NA,
+    assessments_yearLastMonitoredText = NA
+  ) |>
+  rename(
+    assessments_assessmentUnitIdentifier = ASSESSMENT_UNIT_ID,
+    assessments_useAttainments_useName = USE_NAME
+  )
 
 # ---- combine data into one long file ----
 # combine data
-autouse_crosswalk_raw <- bind_rows(df_co, df_mt, df_nd, df_sd, df_ut
-                                   # , df_wy
-                                   # , df_bf
-                                   , df_WY_formatted
-                                   , df_umu) |>
+autouse_crosswalk_raw <- bind_rows(
+  df_co, df_mt, df_nd, df_sd, df_ut,
+  # df_wy,
+  # df_bf,
+  df_WY_formatted,
+  df_umu
+) |>
   arrange(organizationIdentifier, assessments_assessmentUnitIdentifier, assessments_useAttainments_useName)
 
 # finalize
 autouse_crosswalk_simple <- autouse_crosswalk_raw |>
-  select(AssessmentUnitIdentifier = assessments_assessmentUnitIdentifier,
-         ATTAINS.UseName = assessments_useAttainments_useName) |>
+  select(
+    AssessmentUnitIdentifier = assessments_assessmentUnitIdentifier,
+    ATTAINS.UseName = assessments_useAttainments_useName
+  ) |>
   arrange(AssessmentUnitIdentifier, ATTAINS.UseName)
 
-# get current date 
+# get current date
 current_date <- format(Sys.Date(), "%Y%m%d")
 
 # file name
-raw_file_name <- paste0("r8_attains_autouse_long_", current_date , ".csv")
-simple_file_name <- paste0("r8_attains_autouse_long_simple_", current_date , ".csv")
+raw_file_name <- paste0("r8_attains_autouse_long_", current_date, ".csv")
+simple_file_name <- paste0("r8_attains_autouse_long_simple_", current_date, ".csv")
 
 # export
 # write_csv(x = autouse_crosswalk_raw, path = here::here("data-raw", raw_file_name))
@@ -336,11 +361,11 @@ write_csv(x = autouse_crosswalk_simple, path = here::here("data-raw", simple_fil
 # save internally to R/sysdata.rda
 # https://r-pkgs.org/data.html#sec-data-sysdata
 usethis::use_data(autouse_crosswalk_simple,
-                  mltoau_crosswalk_simple,
-                  overwrite = TRUE,
-                  internal = TRUE)
+  mltoau_crosswalk_simple,
+  overwrite = TRUE,
+  internal = TRUE
+)
 # ---- add documentation ----
-
 
 
 # ---- old code: merge all crosswalks into one ----

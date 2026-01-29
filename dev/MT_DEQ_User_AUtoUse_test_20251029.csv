@@ -1,0 +1,13 @@
+ATTAINS.OrganizationIdentifier,ATTAINS.AssessmentUnitIdentifier,ATTAINS.UseName,ATTAINS.WaterType,TADA.AssessmentUnitStatus,IncludeOrExclude
+MTDEQ,Fake1Test,Agricultural,RIVER,Existing,Include
+MTDEQ,Fake1Test,Aquatic Life,RIVER,Existing,Include
+MTDEQ,Fake1Test,Drinking Water,RIVER,Existing,Include
+MTDEQ,Fake1Test,Primary Contact Recreation,RIVER,Existing,Include
+MTDEQ,Fake2Test,Agricultural,"LAKE, FRESHWATER",Existing,Include
+MTDEQ,Fake2Test,Aquatic Life,"LAKE, FRESHWATER",Existing,Include
+MTDEQ,Fake2Test,Drinking Water,"LAKE, FRESHWATER",Existing,Include
+MTDEQ,Fake2Test,Primary Contact Recreation,"LAKE, FRESHWATER",Existing,Include
+MTDEQ,Fake3Test,Agricultural,"LAKE, FRESHWATER",Existing,Include
+MTDEQ,Fake3Test,Aquatic Life,"LAKE, FRESHWATER",Existing,Include
+MTDEQ,Fake3Test,Drinking Water,"LAKE, FRESHWATER",Existing,Include
+MTDEQ,Fake3Test,Primary Contact Recreation,"LAKE, FRESHWATER",Existing,Include

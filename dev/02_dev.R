@@ -31,12 +31,17 @@ usethis::use_package("gotop")
 usethis::use_package("utils")
 usethis::use_package("shinyjs")
 usethis::use_package("dplyr")
-usethis::use_package("tidyr")
-usethis::use_package("sf")
-usethis::use_package("leaflet")
+# usethis::use_package("tidyr")
+# desc::desc_del_dep("tidyr") # remove b/c no longer needed
+# usethis::use_package("sf")
+# desc::desc_del_dep("sf") # remove b/c no longer needed
+# usethis::use_package("leaflet")
+# desc::desc_del_dep("leaflet") # remove leaflet b/c of EPATADA plotting
 usethis::use_package("EPATADA")
 usethis::use_package("readr")
-usethis::use_package("stats")
+# usethis::use_package("stats")
+# desc::desc_del_dep("stats") # remove b/c no longer needed
+usethis::use_package("rExpertQuery")
 
 ## Add modules ----
 ## Create a module infrastructure in R/
@@ -75,7 +80,7 @@ devtools::build_vignettes()
 usethis::use_coverage()
 
 # Create a summary readme for the testthat subdirectory
-covrpage::covrpage()
+# covrpage::covrpage()
 
 ## CI ----
 ## Use this part of the script if you need to set up a CI
