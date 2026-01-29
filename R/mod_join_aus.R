@@ -182,7 +182,7 @@ mod_join_aus_server <- function(id, tadat) {
         # otherwise coerce
         df_ml_data <- df_ml_data |>
           # use new internal TADA function for conversion
-          EPATADA:::correctColType()
+          EPATADA::TADA_CorrectColType()
 
         #### 2. Create ML/AU crosswalk ####
         # log to command line

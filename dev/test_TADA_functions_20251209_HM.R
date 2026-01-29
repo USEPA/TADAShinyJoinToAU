@@ -61,7 +61,7 @@ if (length(missing_cols) > 0) {
 # Force conversion
 df_WQ_Input_v2 <- df_WQ_Input %>%
   # use new internal TADA function for conversion
-  EPATADA:::correctColType()
+  EPATADA::TADA_CorrectColType()
 
 class(df_WQ_Input$StateCode)
 class(df_WQ_Input_v2$StateCode)
