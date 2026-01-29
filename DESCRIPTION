@@ -45,7 +45,8 @@ Suggests:
     glue,
     pkgload,
     zip,
-    remotes
+    remotes,
+    rlang
 Config/testthat/edition: 3
 Language: en-US
 Depends: 
