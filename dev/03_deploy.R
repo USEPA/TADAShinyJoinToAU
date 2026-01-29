@@ -31,34 +31,34 @@ devtools::check()
 # ## If you want to deploy to ShinyProxy
 # golem::add_dockerfile_with_renv_shinyproxy()
 
-## Posit ----
-## If you want to deploy on Posit related platforms
-golem::add_positconnect_file()
-golem::add_shinyappsio_file()
-golem::add_shinyserver_file()
+# ## Posit ----
+# ## If you want to deploy on Posit related platforms
+# golem::add_positconnect_file()
+# golem::add_shinyappsio_file()
+# golem::add_shinyserver_file()
 
 ## Deploy to Posit Connect or ShinyApps.io ----
 
-## Add/update manifest file (optional; for Git backed deployment on Posit )
-rsconnect::writeManifest()
+# ## Add/update manifest file (optional; for Git backed deployment on Posit)
+# rsconnect::writeManifest()
 
-## In command line.
-rsconnect::deployApp(
-  appName = desc::desc_get_field("Package"),
-  appTitle = desc::desc_get_field("Package"),
-  appFiles = c(
-    # Add any additional files unique to your app here.
-    "R/",
-    "inst/",
-    # "data/",
-    "NAMESPACE",
-    "DESCRIPTION",
-    "app.R"
-  ),
-  appId = rsconnect::deployments(".")$appID,
-  lint = FALSE,
-  forceUpdate = TRUE
-)
+# ## In command line.
+# rsconnect::deployApp(
+#   appName = desc::desc_get_field("Package"),
+#   appTitle = desc::desc_get_field("Package"),
+#   appFiles = c(
+#     # Add any additional files unique to your app here.
+#     "R/",
+#     "inst/",
+#     # "data/",
+#     "NAMESPACE",
+#     "DESCRIPTION",
+#     "app.R"
+#   ),
+#   appId = rsconnect::deployments(".")$appID,
+#   lint = FALSE,
+#   forceUpdate = TRUE
+# )
 
 # Deploy to EPA Posit Connect----
 
@@ -86,14 +86,13 @@ golem::document_and_reload()
 # do not edit below
 rsconnect::deployApp(
   appDir = getwd(),
-  appFiles = c("app.R", "DESCRIPTION", "NAMESPACE", "R/", "inst/"),
+  # appFiles = c("app.R", "DESCRIPTION", "NAMESPACE", "R/", "inst/"),
   appName = "TADAShinyJoinToAU",
   appTitle = "TADAShiny Module 2 Join WQP Monitoring Locations to ATTAINS Assessment Units and Uses",
   launch.browser = TRUE,
   forceUpdate = TRUE,
   appId = 1023
 )
-
 # To deploy to EPA posit connect production (public)
 # We must reach out to the DMAP team
 # Add public URL here when ready
