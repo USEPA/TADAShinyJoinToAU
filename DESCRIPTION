@@ -26,7 +26,8 @@ Imports:
     utils,
     readxl,
     rExpertQuery,
-    magrittr
+    magrittr,
+    withr
 Remotes:
     USEPA/EPATADA@develop,
     USEPA/rExpertQuery
