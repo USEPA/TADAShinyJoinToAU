@@ -8,7 +8,7 @@
 # set options
 # below increases the max data upload size from the shiny default of 5mb per file to 30mb for file
 options(shiny.maxRequestSize = 400 * 1024^2)
-options(warn = 2)
+withr::local_options(list(warn = 2))
 
 # server
 app_server <- function(input, output, session) {

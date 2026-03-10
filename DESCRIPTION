@@ -26,7 +26,8 @@ Imports:
     utils,
     readxl,
     rExpertQuery,
-    magrittr
+    magrittr,
+    withr
 Remotes:
     USEPA/EPATADA@develop,
     USEPA/rExpertQuery
@@ -46,7 +47,8 @@ Suggests:
     pkgload,
     zip,
     remotes,
-    rlang
+    rlang,
+    rprojroot
 Config/testthat/edition: 3
 Language: en-US
 Depends: 
