@@ -48,7 +48,8 @@ Suggests:
     zip,
     remotes,
     rlang,
-    rprojroot
+    rprojroot,
+    Rcpp
 Config/testthat/edition: 3
 Language: en-US
 Depends: 

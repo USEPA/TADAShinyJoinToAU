@@ -10,6 +10,7 @@
 #' @noRd
 #'
 #' @import rExpertQuery
+#' @import withr
 NULL
 
 #' Pipe operator
