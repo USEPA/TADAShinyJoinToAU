@@ -231,12 +231,14 @@ mod_join_aus_server <- function(id, tadat) {
         # get uses
         if (exists("df_UseXwalk_input")) {
           df_UseAURef <- EPATADA::TADA_AssignUsesToAU(
+            df_ml_data,
             AUMLRef = df_AUMLRef,
             AU_UsesRef = df_UseXwalk_input,
             org_id = myOrg
           )
         } else {
           df_UseAURef <- EPATADA::TADA_AssignUsesToAU(
+            df_ml_data,
             AUMLRef = df_AUMLRef,
             AU_UsesRef = NULL,
             org_id = myOrg
