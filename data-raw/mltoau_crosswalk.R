@@ -4,7 +4,6 @@
 # 1. ask ben to make columns common between tabs
 # 2. create a function for the au to use work (from attains)
 
-
 # load libraries
 library(tidyverse)
 library(readxl)
@@ -67,43 +66,51 @@ autouse_raw <- read_csv(
 
 # ---- ml to au crosswalk for all r8 states ----
 # select columns
-sel_cols <- c("OrganizationIdentifier", "MonitoringLocationIdentifier", "MonitoringLocationName", "MonitoringLocationTypeName", "TypeSimple", "State", "AU_ID_Final")
+sel_cols <- c(
+  "OrganizationIdentifier",
+  "MonitoringLocationIdentifier",
+  "MonitoringLocationName",
+  "MonitoringLocationTypeName",
+  "TypeSimple",
+  "State",
+  "AU_ID_Final"
+)
 
 # pair down
 # nd streams selec
-mltoau_nd_streams <- mltoau_nd_streams_raw |>
-  select(all_of(sel_cols))
+mltoau_nd_streams <- mltoau_nd_streams_raw |> select(all_of(sel_cols))
 
 # nd lakes
-mltoau_nd_lakes <- mltoau_nd_lakes_raw |>
-  select(all_of(sel_cols))
+mltoau_nd_lakes <- mltoau_nd_lakes_raw |> select(all_of(sel_cols))
 
 # ut streams
-mltoau_ut_streams <- mltoau_ut_streams_raw |>
-  select(all_of(sel_cols))
+mltoau_ut_streams <- mltoau_ut_streams_raw |> select(all_of(sel_cols))
 
 # ut lakes
-mltoau_ut_lakes <- mltoau_ut_lakes_raw |>
-  select(all_of(sel_cols))
+mltoau_ut_lakes <- mltoau_ut_lakes_raw |> select(all_of(sel_cols))
 
 # wy streams
-mltoau_wy_streams <- mltoau_wy_streams_raw |>
-  select(all_of(sel_cols))
+mltoau_wy_streams <- mltoau_wy_streams_raw |> select(all_of(sel_cols))
 
 # wy lakes
-mltoau_wy_lakes <- mltoau_wy_lakes_raw |>
-  select(all_of(sel_cols))
+mltoau_wy_lakes <- mltoau_wy_lakes_raw |> select(all_of(sel_cols))
 
 
 # merge datasets
 mltoau_crosswalk_raw <- bind_rows(
-  mltoau_nd_streams, mltoau_nd_lakes,
-  mltoau_ut_streams, mltoau_ut_lakes,
-  mltoau_wy_streams, mltoau_wy_lakes
+  mltoau_nd_streams,
+  mltoau_nd_lakes,
+  mltoau_ut_streams,
+  mltoau_ut_lakes,
+  mltoau_wy_streams,
+  mltoau_wy_lakes
 ) |>
-  mutate(AssessmentUnitIdentifier = case_when(AU_ID_Final == "-999999" ~ NA,
-    .default = AU_ID_Final
-  )) |>
+  mutate(
+    AssessmentUnitIdentifier = case_when(
+      AU_ID_Final == "-999999" ~ NA,
+      .default = AU_ID_Final
+    )
+  ) |>
   select(-AU_ID_Final)
 
 # simplify
@@ -171,8 +178,7 @@ get_state_attains_uses <- function(state_abrv = "ND") {
 
     # pull out assessment data
     # unnest the assessments column
-    temp_df_unnested <- temp_df |>
-      unnest(assessments, names_sep = "_")
+    temp_df_unnested <- temp_df |> unnest(assessments, names_sep = "_")
 
     temp_df_unnested_v2 <- temp_df_unnested |>
       unnest(assessments_useAttainments, names_sep = "_")
@@ -198,7 +204,11 @@ get_state_attains_uses <- function(state_abrv = "ND") {
     return(temp_df_final)
   } else {
     # print
-    print(paste0("Failed to retrieve data. Status code:", status_code(temp_response), "\n"))
+    print(paste0(
+      "Failed to retrieve data. Status code:",
+      status_code(temp_response),
+      "\n"
+    ))
 
     # return null
     return(NULL)
@@ -243,8 +253,7 @@ get_tribe_attains_uses <- function(tribe_abrv = "BLCKFEET") {
 
     # pull out assessment data
     # unnest the assessments column
-    temp_df_unnested <- temp_df |>
-      unnest(assessments, names_sep = "_")
+    temp_df_unnested <- temp_df |> unnest(assessments, names_sep = "_")
 
     temp_df_unnested_v2 <- temp_df_unnested |>
       unnest(assessments_useAttainments, names_sep = "_")
@@ -270,7 +279,11 @@ get_tribe_attains_uses <- function(tribe_abrv = "BLCKFEET") {
     return(temp_df_final)
   } else {
     # print
-    print(paste0("Failed to retrieve data. Status code:", status_code(temp_response), "\n"))
+    print(paste0(
+      "Failed to retrieve data. Status code:",
+      status_code(temp_response),
+      "\n"
+    ))
 
     # return null
     return(NULL)
@@ -317,13 +330,21 @@ df_WY_formatted <- WY_raw |>
 # ---- combine data into one long file ----
 # combine data
 autouse_crosswalk_raw <- bind_rows(
-  df_co, df_mt, df_nd, df_sd, df_ut,
+  df_co,
+  df_mt,
+  df_nd,
+  df_sd,
+  df_ut,
   # df_wy,
   # df_bf,
   df_WY_formatted,
   df_umu
 ) |>
-  arrange(organizationIdentifier, assessments_assessmentUnitIdentifier, assessments_useAttainments_useName)
+  arrange(
+    organizationIdentifier,
+    assessments_assessmentUnitIdentifier,
+    assessments_useAttainments_useName
+  )
 
 # finalize
 autouse_crosswalk_simple <- autouse_crosswalk_raw |>
@@ -338,11 +359,18 @@ current_date <- format(Sys.Date(), "%Y%m%d")
 
 # file name
 raw_file_name <- paste0("r8_attains_autouse_long_", current_date, ".csv")
-simple_file_name <- paste0("r8_attains_autouse_long_simple_", current_date, ".csv")
+simple_file_name <- paste0(
+  "r8_attains_autouse_long_simple_",
+  current_date,
+  ".csv"
+)
 
 # export
 # write_csv(x = autouse_crosswalk_raw, path = here::here("data-raw", raw_file_name))
-write_csv(x = autouse_crosswalk_simple, path = here::here("data-raw", simple_file_name))
+write_csv(
+  x = autouse_crosswalk_simple,
+  path = here::here("data-raw", simple_file_name)
+)
 
 # for now just use ben's file b/c api is down
 # autouse_crosswalk_raw <- read_csv(file = here::here("data-raw", "R8_ATTAINS_AU_Uses_Long_20250602.csv"))
@@ -360,13 +388,13 @@ write_csv(x = autouse_crosswalk_simple, path = here::here("data-raw", simple_fil
 
 # save internally to R/sysdata.rda
 # https://r-pkgs.org/data.html#sec-data-sysdata
-usethis::use_data(autouse_crosswalk_simple,
+usethis::use_data(
+  autouse_crosswalk_simple,
   mltoau_crosswalk_simple,
   overwrite = TRUE,
   internal = TRUE
 )
 # ---- add documentation ----
-
 
 # ---- old code: merge all crosswalks into one ----
 # mltoautouse_crosswalk <- mltoau_crosswalk |>

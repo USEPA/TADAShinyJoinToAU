@@ -31,7 +31,8 @@ app_ui <- function(request) {
       tags$html(class = "no-js", lang = "en"),
 
       # standardized Go to Top button appears on lower-right corner when window is scrolled down 100 pixels
-      gotop::use_gotop( # add it inside the ui
+      gotop::use_gotop(
+        # add it inside the ui
         src = "fas fa-chevron-circle-up", # css class from Font Awesome
         opacity = 0.8, # transparency
         width = 60, # size
@@ -49,18 +50,22 @@ app_ui <- function(request) {
       shinyjs::useShinyjs(),
       shinyjs::inlineCSS(css),
       htmltools::br(),
-      shiny::headerPanel(title = "Tools for Automated Data Analysis (TADA) Module 2: Join Monitoring Locations to AUs"),
+      shiny::headerPanel(
+        title = "Tools for Automated Data Analysis (TADA) Module 2: Join Monitoring Locations to AUs"
+      ),
       htmltools::br(),
 
       # create a navbar page with tabs at the top
       shiny::tabsetPanel(
         id = "tabbar",
-        shiny::tabPanel("1. Load File",
+        shiny::tabPanel(
+          "1. Load File",
           value = "Load", # each tabPanel represents a tab page at the top of the navbar
           htmltools::br(),
           mod_load_file_ui("load_file_1")
         ),
-        shiny::tabPanel("2. Join AUs",
+        shiny::tabPanel(
+          "2. Join AUs",
           value = "Join",
           htmltools::br(),
           mod_join_aus_ui("join_aus_1") # ,
@@ -97,17 +102,11 @@ app_ui <- function(request) {
 #' @importFrom golem add_resource_path activate_js favicon bundle_resources
 #' @noRd
 golem_add_external_resources <- function() {
-  add_resource_path(
-    "www",
-    app_sys("app/www")
-  )
+  add_resource_path("www", app_sys("app/www"))
 
   tags$head(
     favicon(),
-    bundle_resources(
-      path = app_sys("app/www"),
-      app_title = "TADAShinyJoinToAU"
-    )
+    bundle_resources(path = app_sys("app/www"), app_title = "TADAShinyJoinToAU")
     # Add here other external resources
     # for example, you can add shinyalert::useShinyalert()
   )

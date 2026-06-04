@@ -15,7 +15,6 @@
 # TODO check w/ epa: there are a lot of ML ID's with missing/unresovled AU ID info
 # TODO functional-ize code in server
 
-
 mod_join_aus_ui <- function(id) {
   # set module session id
   ns <- shiny::NS(id)
@@ -34,21 +33,27 @@ mod_join_aus_ui <- function(id) {
       shiny::column(
         width = 4,
         htmltools::strong("Purpose"),
-        htmltools::p("This app joins monitoring locations (MLs) to assessment
+        htmltools::p(
+          "This app joins monitoring locations (MLs) to assessment
         units (AUs) which can be exported. It also outputs an AU to designated
         use table. In this tab, data can be reviewed via tables and an interactive map.
-        Then download the data for external review."),
+        Then download the data for external review."
+        ),
         htmltools::strong("Instructions"),
-        htmltools::p("Click on the button below to join MLs to AUs and their
+        htmltools::p(
+          "Click on the button below to join MLs to AUs and their
                      designated uses (Step 2a). Once the process is completed,
                      summary tables and a map will be generated (see right).
                      Lastly, the results can be downloaded for external review
-                     (Step 2b)."),
+                     (Step 2b)."
+        ),
         htmltools::strong("Review"),
-        htmltools::p("After downloading, please review the tables for accuracy
+        htmltools::p(
+          "After downloading, please review the tables for accuracy
                      before proceeding to the analysis module. The user needs to
                      confirm that the correct AU is assigned to each ML and
-                     that the correct uses are assigned to each AU."),
+                     that the correct uses are assigned to each AU."
+        ),
         htmltools::h3("2a. Join Monitoring Locations to AUs and Uses"),
         htmltools::p("Click on the button below."),
         shiny::actionButton(
@@ -58,8 +63,10 @@ mod_join_aus_ui <- function(id) {
         ),
         htmltools::h3("2b. Download results"),
         htmltools::p("Click on the button below."),
-        htmltools::strong("The button will be disabled until the join is
-                          complete (Step 2a)."),
+        htmltools::strong(
+          "The button will be disabled until the join is
+                          complete (Step 2a)."
+        ),
         shinyjs::disabled(
           shiny::downloadButton(
             outputId = ns("download_results"),
@@ -73,28 +80,41 @@ mod_join_aus_ui <- function(id) {
       shiny::column(
         width = 8,
         htmltools::h3("Join summary"),
-        htmltools::p("Below is a numerical summary of the join process
-                     (blank until join is completed)."),
-        shiny::verbatimTextOutput(outputId = ns("join_summary"), placeholder = TRUE),
+        htmltools::p(
+          "Below is a numerical summary of the join process
+                     (blank until join is completed)."
+        ),
+        shiny::verbatimTextOutput(
+          outputId = ns("join_summary"),
+          placeholder = TRUE
+        ),
         htmltools::h3("Explore results"),
-        htmltools::p("Below are tabular and graphical results of the join
-                     (blank until join is completed)."),
+        htmltools::p(
+          "Below are tabular and graphical results of the join
+                     (blank until join is completed)."
+        ),
         htmltools::h3("Site Map"),
-        htmltools::p("Map of sites in join organized by join results.
-                     Click on the site pin to view the SiteID."),
+        htmltools::p(
+          "Map of sites in join organized by join results.
+                     Click on the site pin to view the SiteID."
+        ),
         htmltools::br(),
         shiny::uiOutput(outputId = ns("join_map"), width = "90%"),
         # leaflet::leafletOutput(outputId = ns("join_map"), width = "90%"),
         htmltools::hr(),
         htmltools::h3("ML to AU Table"),
-        htmltools::p("Summary of ML to AU join. Scroll, search, or sort the
-                     table below to explore."),
+        htmltools::p(
+          "Summary of ML to AU join. Scroll, search, or sort the
+                     table below to explore."
+        ),
         htmltools::br(),
         DT::dataTableOutput(outputId = ns("df_ml_results_dt")),
         htmltools::br(),
         htmltools::h3("AU to Use Table"),
-        htmltools::p("Summary of AU to Use join. Scroll, search, or sort the
-                     table below to explore."),
+        htmltools::p(
+          "Summary of AU to Use join. Scroll, search, or sort the
+                     table below to explore."
+        ),
         htmltools::br(),
         DT::dataTableOutput(outputId = ns("df_au_results_dt"))
       ) # END ~ column
@@ -160,11 +180,14 @@ mod_join_aus_server <- function(id, tadat) {
         # qc check for required fields
         #  Required columns
         required_cols <- c(
-          "ResultIdentifier", "TADA.MonitoringLocationName",
-          "TADA.LatitudeMeasure", "TADA.LongitudeMeasure",
+          "ResultIdentifier",
+          "TADA.MonitoringLocationName",
+          "TADA.LatitudeMeasure",
+          "TADA.LongitudeMeasure",
           "HorizontalCoordinateReferenceSystemDatumName",
           "TADA.MonitoringLocationIdentifier",
-          "TADA.CharacteristicName", "ActivityStartDate",
+          "TADA.CharacteristicName",
+          "ActivityStartDate",
           "OrganizationIdentifier"
         )
 
@@ -198,19 +221,23 @@ mod_join_aus_server <- function(id, tadat) {
         # browser()
 
         if (exists("df_xwalk_input")) {
-          suppressWarnings(AUMLRef_list <- EPATADA::TADA_CreateAUMLCrosswalk(
-            df_ml_data,
-            au_ref = df_xwalk_input,
-            org_id = myOrg,
-            batch_upload = FALSE
-          ))
+          suppressWarnings(
+            AUMLRef_list <- EPATADA::TADA_CreateAUMLCrosswalk(
+              df_ml_data,
+              au_ref = df_xwalk_input,
+              org_id = myOrg,
+              batch_upload = FALSE
+            )
+          )
         } else {
-          suppressWarnings(AUMLRef_list <- EPATADA::TADA_CreateAUMLCrosswalk(
-            df_ml_data,
-            au_ref = NULL,
-            org_id = myOrg,
-            batch_upload = FALSE
-          ))
+          suppressWarnings(
+            AUMLRef_list <- EPATADA::TADA_CreateAUMLCrosswalk(
+              df_ml_data,
+              au_ref = NULL,
+              org_id = myOrg,
+              batch_upload = FALSE
+            )
+          )
         } # end
 
         # browser()
@@ -252,16 +279,20 @@ mod_join_aus_server <- function(id, tadat) {
 
         # add extra fields to ML to AU ref
         df_AUMLRef_v2 <- df_AUMLRef |>
-          dplyr::mutate(Needs_Review = dplyr::case_when(
-            (TADA.AURefSource == "TADA_CreateATTAINSAUMLCrosswalk" |
-              TADA.AURefSource == "User-supplied Ref") ~ "Yes",
-            TRUE ~ "No"
-          ))
+          dplyr::mutate(
+            Needs_Review = dplyr::case_when(
+              (TADA.AURefSource == "TADA_CreateATTAINSAUMLCrosswalk" |
+                TADA.AURefSource == "User-supplied Ref") ~ "Yes",
+              TRUE ~ "No"
+            )
+          )
 
         # check all sites are there
         df_ml_data_miss_sites <- df_ml_data |>
-          dplyr::filter(!(TADA.MonitoringLocationIdentifier
-          %in% df_AUMLRef$TADA.MonitoringLocationIdentifier)) |>
+          dplyr::filter(
+            !(TADA.MonitoringLocationIdentifier %in%
+              df_AUMLRef$TADA.MonitoringLocationIdentifier)
+          ) |>
           dplyr::select(TADA.MonitoringLocationIdentifier) |>
           dplyr::distinct() |>
           dplyr::mutate(
@@ -280,7 +311,10 @@ mod_join_aus_server <- function(id, tadat) {
         } # end
 
         # increment progress bar, and update the detail text
-        shiny::incProgress(amount = 1 / n_inc, detail = "Completed QC checks...")
+        shiny::incProgress(
+          amount = 1 / n_inc,
+          detail = "Completed QC checks..."
+        )
         Sys.sleep(0.25)
 
         #### 5. display summary ####
@@ -293,37 +327,58 @@ mod_join_aus_server <- function(id, tadat) {
           if (is.null(df_AUMLRef_v3)) {
             # print
             "Results have not been joined."
-          }
-
-          #
-          else {
+          } else {
+            #
             # count regional crosswalk matched sites
-            num_cross_match <- length(unique(df_AUMLRef_v3$TADA.MonitoringLocationIdentifier[df_AUMLRef_v3$TADA.AURefSource == "User Supplied Crosswalk"]))
+            num_cross_match <- length(unique(df_AUMLRef_v3$TADA.MonitoringLocationIdentifier[
+              df_AUMLRef_v3$TADA.AURefSource == "User Supplied Crosswalk"
+            ]))
 
             # count attains sites
-            num_attains_match <- length(unique(df_AUMLRef_v3$TADA.MonitoringLocationIdentifier[df_AUMLRef_v3$TADA.AURefSource == "ATTAINS Crosswalk"]))
+            num_attains_match <- length(unique(df_AUMLRef_v3$TADA.MonitoringLocationIdentifier[
+              df_AUMLRef_v3$TADA.AURefSource == "ATTAINS Crosswalk"
+            ]))
 
             # count geospatial sites
-            num_geospatial <- length(unique(df_AUMLRef_v3$TADA.MonitoringLocationIdentifier[df_AUMLRef_v3$TADA.AURefSource == "TADA_CreateATTAINSAUMLCrosswalk"]))
+            num_geospatial <- length(unique(df_AUMLRef_v3$TADA.MonitoringLocationIdentifier[
+              df_AUMLRef_v3$TADA.AURefSource ==
+                "TADA_CreateATTAINSAUMLCrosswalk"
+            ]))
 
             # total sites
-            num_total <- length(unique(df_AUMLRef_v3$TADA.MonitoringLocationIdentifier))
+            num_total <- length(unique(
+              df_AUMLRef_v3$TADA.MonitoringLocationIdentifier
+            ))
 
             # total unique au's
-            num_unique_aus <- length(unique(df_UseAURef$ATTAINS.AssessmentUnitIdentifier))
+            num_unique_aus <- length(unique(
+              df_UseAURef$ATTAINS.AssessmentUnitIdentifier
+            ))
 
             # total unique uses
             num_unique_uses <- length(unique(df_UseAURef$ATTAINS.UseName))
 
             # print
             paste0(
-              "There are ", num_total, " unique monitoring locations.\n",
-              "User-supplied crosswalk matched: ", num_cross_match, " sites\n",
-              "ATTAINS matched: ", num_attains_match, " sites\n",
-              "TADA geospatial matched: ", num_geospatial, " sites\n",
+              "There are ",
+              num_total,
+              " unique monitoring locations.\n",
+              "User-supplied crosswalk matched: ",
+              num_cross_match,
+              " sites\n",
+              "ATTAINS matched: ",
+              num_attains_match,
+              " sites\n",
+              "TADA geospatial matched: ",
+              num_geospatial,
+              " sites\n",
               # "Unmatched (needs manual review): ", num_unmatch, " sites \n",
-              "Number of unique AU's (manual review not included): ", num_unique_aus, " \n",
-              "Number of unique associated uses (manual review not included): ", num_unique_uses, " \n"
+              "Number of unique AU's (manual review not included): ",
+              num_unique_aus,
+              " \n",
+              "Number of unique associated uses (manual review not included): ",
+              num_unique_uses,
+              " \n"
             )
           }
         })
@@ -375,13 +430,14 @@ mod_join_aus_server <- function(id, tadat) {
         shiny::incProgress(amount = 1 / n_inc, detail = "Show results...")
         Sys.sleep(0.25)
 
-
         #### 7. display data map ####
         # log to command line
         message("Display data map...")
 
         # show map
-        output$join_map <- shiny::renderUI(EPATADA::TADA_ViewATTAINS(AUMLRef_list))
+        output$join_map <- shiny::renderUI(EPATADA::TADA_ViewATTAINS(
+          AUMLRef_list
+        ))
 
         #### 8. save results ####
         # log to command line
@@ -404,11 +460,26 @@ mod_join_aus_server <- function(id, tadat) {
           content = function(file) {
             # define file paths
             temp_dir <- tempdir()
-            ml_input_file_path <- file.path(temp_dir, paste0("TADAShinyJoinToAU_copy_input_file.csv"))
-            mltoaus_file_path <- file.path(temp_dir, paste0("TADAShinyJoinToAU_MLtoAUs_for_review.csv"))
-            autouse_file_path <- file.path(temp_dir, paste0("TADAShinyJoinToAU_AUtoUses_for_review.csv"))
-            progress_file_path <- file.path(temp_dir, paste0("TADAShinyJoinToAU_prog.rda"))
-            zipfile <- file.path(temp_dir, paste0(tadat$default_outfile, ".zip"))
+            ml_input_file_path <- file.path(
+              temp_dir,
+              paste0("TADAShinyJoinToAU_copy_input_file.csv")
+            )
+            mltoaus_file_path <- file.path(
+              temp_dir,
+              paste0("TADAShinyJoinToAU_MLtoAUs_for_review.csv")
+            )
+            autouse_file_path <- file.path(
+              temp_dir,
+              paste0("TADAShinyJoinToAU_AUtoUses_for_review.csv")
+            )
+            progress_file_path <- file.path(
+              temp_dir,
+              paste0("TADAShinyJoinToAU_prog.rda")
+            )
+            zipfile <- file.path(
+              temp_dir,
+              paste0(tadat$default_outfile, ".zip")
+            )
 
             # function to save tadat values
             write_tadat_file <- function(tadat, filename) {
@@ -421,7 +492,8 @@ mod_join_aus_server <- function(id, tadat) {
               temp_dir <- tadat$temp_dir
 
               # save file
-              save(default_outfile,
+              save(
+                default_outfile,
                 job_id,
                 df_ml_input,
                 df_mltoau_for_review,
@@ -454,8 +526,10 @@ mod_join_aus_server <- function(id, tadat) {
             utils::zip(
               zipfile = zipfile,
               files = c(
-                ml_input_file_path, mltoaus_file_path,
-                autouse_file_path, progress_file_path
+                ml_input_file_path,
+                mltoaus_file_path,
+                autouse_file_path,
+                progress_file_path
               ),
               # files = c(tmpfile1, tmpfile2),
               flags = "-j"
