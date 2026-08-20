@@ -10,3 +10,5 @@ _disable_autoload.R
 ^data-raw$
 ^dev$
 ^rsconnect$
+air.toml
+.pre-commit-config.yaml
