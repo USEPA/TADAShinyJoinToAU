@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.19">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Ben Block">
+
+<title>Development Plan for TADAShinyJoinToAU Module</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="Dev_Plan_TADAShinyJoinToAU_files/libs/clipboard/clipboard.min.js"></script>
+<script src="Dev_Plan_TADAShinyJoinToAU_files/libs/quarto-html/quarto.js" type="module"></script>
+<script src="Dev_Plan_TADAShinyJoinToAU_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="Dev_Plan_TADAShinyJoinToAU_files/libs/quarto-html/popper.min.js"></script>
+<script src="Dev_Plan_TADAShinyJoinToAU_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="Dev_Plan_TADAShinyJoinToAU_files/libs/quarto-html/anchor.min.js"></script>
+<link href="Dev_Plan_TADAShinyJoinToAU_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="Dev_Plan_TADAShinyJoinToAU_files/libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="Dev_Plan_TADAShinyJoinToAU_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="Dev_Plan_TADAShinyJoinToAU_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="Dev_Plan_TADAShinyJoinToAU_files/libs/bootstrap/bootstrap-215b371544c282197b31c8aa00ce3677.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+
+
+</head>
+
+<body class="fullcontent quarto-light">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Development Plan for TADAShinyJoinToAU Module</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Ben Block </p>
+          </div>
+  </div>
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="scope" class="level2">
+<h2 class="anchored" data-anchor-id="scope">Scope</h2>
+<p>The Module 2 application, TADAShinyJoinToAU, begins with outputs from Module 1 and ends with a consolidated reference table for Module 3. The proposed application should function as a guided workflow for connecting water quality monitoring locations (MLs) to Assessment Units (AUs), assigning designated uses and parameters, and building the reference data needed for subsequent assessments. Throughout the process, users will have the ability to edit automated processes and carry their decisions forward.</p>
+</section>
+<section id="proposed-application-navigation" class="level1">
+<h1>Proposed application navigation</h1>
+<p>Module 2 will contain 10 tabs organized sequentially as described in the table below.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 37%">
+<col style="width: 62%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Short Tab Name</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Load Data (Tab 1)</td>
+<td>Establish the initial water quality dataset and application session.</td>
+</tr>
+<tr class="even">
+<td>Flag Sites (Tab 2)</td>
+<td>Identify nearby monitoring locations and questionable coordinates, then let users decide which locations to retain and how nearby sites should be grouped.</td>
+</tr>
+<tr class="odd">
+<td>Join AUs (Tab 3)</td>
+<td>Match retained monitoring locations to existing ATTAINS AUs, allow corrections, and establish the authoritative AU/ML relationship.</td>
+</tr>
+<tr class="even">
+<td>Create AUs (Tab 4)</td>
+<td>Create point AUs for monitoring locations not matched to existing AUs.</td>
+</tr>
+<tr class="odd">
+<td>Join Uses (Tab 5)</td>
+<td>Associate existing ATTAINS designated uses with the reviewed AUs.</td>
+</tr>
+<tr class="even">
+<td>Add Uses (Tab 6)</td>
+<td>Add designated uses not already assigned through the existing ATTAINS relationships.</td>
+</tr>
+<tr class="odd">
+<td>Spatial Criteria (Tab 7)</td>
+<td>Assign salt/fresh indicators and other spatial criteria at the monitoring location or AU level.</td>
+</tr>
+<tr class="even">
+<td>Select Parameters (Tab 8)</td>
+<td>Define the set of parameters that users can assign to designated uses.</td>
+</tr>
+<tr class="odd">
+<td>Assign Parameters (Tab 9)</td>
+<td>Associate the selected parameters with the selected designated uses.</td>
+</tr>
+<tr class="even">
+<td>Final Reference (Tab 10)</td>
+<td>Combine all reviewed crosswalks and spatial attributes into the final Module 2 reference table for Module 3.</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="tab-1" class="level1">
+<h1>Tab 1</h1>
+<section id="purpose" class="level2">
+<h2 class="anchored" data-anchor-id="purpose">Purpose:</h2>
+<p>Establish the initial water quality dataset and application session.</p>
+</section>
+<section id="workflow" class="level2">
+<h2 class="anchored" data-anchor-id="workflow">Workflow:</h2>
+<ol type="1">
+<li><p>Provide general instructions of this tab and subsequent tabs</p></li>
+<li><p>User uploads the output file from TADAShiny Module 1</p></li>
+<li><p>Validate the file structure and required fields.</p></li>
+<li><p>Review the number of records, unique monitoring locations, organizations, and available coordinates.</p></li>
+<li><p>Confirm the dataset and proceed to Tab 2.</p></li>
+</ol>
+</section>
+<section id="epatada-functions-used" class="level2">
+<h2 class="anchored" data-anchor-id="epatada-functions-used">EPATADA functions used:</h2>
+<p>None</p>
+</section>
+<section id="ui-displays" class="level2">
+<h2 class="anchored" data-anchor-id="ui-displays">UI Displays:</h2>
+<ul>
+<li><p>Display of uploaded data table (view only)</p></li>
+<li><p>Input file summary including # rows, # columns, and # monitoring locations</p></li>
+</ul>
+</section>
+<section id="outputs" class="level2">
+<h2 class="anchored" data-anchor-id="outputs">Outputs:</h2>
+<ul>
+<li><p>tadat$df_WQ_input_original - Immutable copy of uploaded data</p></li>
+<li><p>tadat$df_working - Working copy of uploaded data</p></li>
+</ul>
+</section>
+<section id="questionsdecisions" class="level2">
+<h2 class="anchored" data-anchor-id="questionsdecisions">Questions/Decisions:</h2>
+<ul>
+<li>Consider a modal pop-up for that provides general instructions of this tab and subsequent tabs? Other options akin to “Help” buttons?</li>
+</ul>
+</section>
+</section>
+<section id="tab-2" class="level1">
+<h1>Tab 2</h1>
+<section id="purpose-1" class="level2">
+<h2 class="anchored" data-anchor-id="purpose-1">Purpose:</h2>
+<p>Identify nearby monitoring locations and questionable coordinates, then let users decide which locations to retain and how nearby sites should be grouped.</p>
+</section>
+<section id="workflow-1" class="level2">
+<h2 class="anchored" data-anchor-id="workflow-1">Workflow:</h2>
+<p><strong>Required files</strong></p>
+<ul>
+<li>tadat$df_working (source: Tab 1)</li>
+</ul>
+<p><strong>Workflow</strong></p>
+<ol type="1">
+<li><p>Run TADA_FlagCoordinates(). Uses tadat$df_working.</p></li>
+<li><p>Display flagged coordinates on a map using TADA_FlaggedSitesMap().</p></li>
+<li><p>Allow individual or bulk exclusion of monitoring locations with suspect coordinates (via editable table).</p></li>
+<li><p>Allow users to change the nearby-site distance threshold. Then run TADA_FindNearbySites(). Uses output from edited table after TADA_FlagCoordinates() is applied.</p></li>
+<li><p>Display nearby sites on a map using TADA_NearbySitesMap().</p></li>
+<li><p>Allow users to keep groups, separate individual locations, or assign a custom TADA.MonitoringLocationIdentifier (via editable table).</p></li>
+<li><p>Update the full working dataset (tadat$df_working).</p>
+<ol type="1">
+<li><p>TADA.Remove should be set to TRUE if a user opts to exclude the MonitoringLocation on any tab, otherwise it remains FALSE</p></li>
+<li><p>TADA.RemovalReason should add a flag/comment as reflecting the tab it was removed on.</p></li>
+</ol></li>
+<li><p>Create a final dataset (tadat$df_final) with excluded monitoring location data removed.</p></li>
+</ol>
+</section>
+<section id="epatada-functions-used-1" class="level2">
+<h2 class="anchored" data-anchor-id="epatada-functions-used-1">EPATADA functions used:</h2>
+<ul>
+<li><p>TADA_FlagCoordinates()</p></li>
+<li><p>TADA_FindNearbySites()</p></li>
+<li><p>TADA_FlaggedSitesMap()</p></li>
+<li><p>TADA_NearbySitesMap()</p></li>
+</ul>
+</section>
+<section id="ui-displays-1" class="level2">
+<h2 class="anchored" data-anchor-id="ui-displays-1">UI Displays:</h2>
+<ul>
+<li><p>Side panel instructions, nearby-site distance threshold, “go” button, and save button</p></li>
+<li><p>Map and editable table for TADA_FlagCoordinates() and TADA_FlaggedSitesMap()</p></li>
+<li><p>Map and editable table for TADA_FindNearbySites() and TADA_NearbySitesMap()</p></li>
+</ul>
+</section>
+<section id="outputs-1" class="level2">
+<h2 class="anchored" data-anchor-id="outputs-1">Outputs:</h2>
+<ul>
+<li><p>tadat$df_working - Contains all data but appended remove fields</p></li>
+<li><p>tadat$df_final - Trimmed dataset</p></li>
+</ul>
+</section>
+<section id="questionsdecisions-1" class="level2">
+<h2 class="anchored" data-anchor-id="questionsdecisions-1">Questions/Decisions:</h2>
+<ul>
+<li>Best practices for maintaining the working and final datasets?</li>
+</ul>
+</section>
+</section>
+<section id="tab-3" class="level1">
+<h1>Tab 3</h1>
+<section id="purpose-2" class="level2">
+<h2 class="anchored" data-anchor-id="purpose-2">Purpose:</h2>
+<p>Match retained monitoring locations to existing ATTAINS AUs, allow corrections, and establish the authoritative AU/ML relationship.</p>
+</section>
+<section id="workflow-2" class="level2">
+<h2 class="anchored" data-anchor-id="workflow-2">Workflow:</h2>
+<ol type="1">
+<li>Display ATTAINS organizations from rExpertQuery::EQ_DomainValues(“org_id”). Allow an “All” option. User can select one or more orgs via a dropdown menu.</li>
+<li>Optional upload of an existing AU/ML crosswalk table. QA/QC check to ensure all required fields are present.</li>
+<li>Run the ML to AU matching process using TADA_CreateAUMLCrosswalk().</li>
+<li>Display the resulting matches on a map (via TADA_ViewATTAINS()) and in an editable table. Link them visually.</li>
+<li>Let users edit AU assignments (ATTAINS.AssessmentUnitIdentifier field).</li>
+<li>Update working and final datasets from the edited output of TADA_CreateAUMLCrosswalk() [TADA_with_ATTAINS dataframe within the list].</li>
+</ol>
+</section>
+<section id="epatada-functions-used-2" class="level2">
+<h2 class="anchored" data-anchor-id="epatada-functions-used-2">EPATADA functions used:</h2>
+<ul>
+<li><p>TADA_CreateAUMLCrosswalk()</p></li>
+<li><p>TADA_ViewATTAINS()</p></li>
+</ul>
+</section>
+<section id="ui-displays-2" class="level2">
+<h2 class="anchored" data-anchor-id="ui-displays-2">UI Displays:</h2>
+<ul>
+<li><p>Side panel instructions, upload button for existing AU/ML crosswalk table, “go” button, “update map” button, and save button</p></li>
+<li><p>Map and editable table from TADA_CreateAUMLCrosswalk() and TADA_ViewATTAINS()</p></li>
+</ul>
+</section>
+<section id="outputs-2" class="level2">
+<h2 class="anchored" data-anchor-id="outputs-2">Outputs:</h2>
+<ul>
+<li><p>tadat$df_working - Contains all data, appended remove fields, and appended geospatial information</p></li>
+<li><p>tadat$df_final - Trimmed dataset with excluded MLs</p></li>
+<li><p>tadat$AUMLRef - ML to AU crosswalk</p></li>
+</ul>
+</section>
+<section id="questionsdecisions-2" class="level2">
+<h2 class="anchored" data-anchor-id="questionsdecisions-2">Questions/Decisions:</h2>
+<ul>
+<li><p>Perhaps this tabs launch should be two steps? First is a button that generates the table via TADA_CreateAUMLCrosswalk() and second is a button that generates the map via TADA_ViewATTAINS()? If tied together, the logic may get confusing to update the map based on the original table from TADA_CreateAUMLCrosswalk() or the user-edited one.</p></li>
+<li><p>Any possibility of conflicting ML to AU matches across organizations?</p></li>
+</ul>
+</section>
+</section>
+<section id="tab-4" class="level1">
+<h1>Tab 4</h1>
+<section id="purpose-3" class="level2">
+<h2 class="anchored" data-anchor-id="purpose-3">Purpose:</h2>
+<p>Create point AUs for monitoring locations not matched to existing AUs.</p>
+</section>
+<section id="workflow-3" class="level2">
+<h2 class="anchored" data-anchor-id="workflow-3">Workflow:</h2>
+<ol type="1">
+<li>Filter tadat$df_final to those sites without assessment units (i.e., is.na(ATTAINS.AssessmentUnitIdentifier)).</li>
+<li>Accept a user-specified AU naming prefix.</li>
+<li>Create new point AUs using TADA_CreatePointAUs().</li>
+<li>Provide a map (via TADA_ViewNewAUs()) and editable table. Allow users to edit the proposed AU names.</li>
+<li>Export shapefiles for ATTAINS import.</li>
+<li>Combine created AUs with existing AU assignments.</li>
+</ol>
+</section>
+<section id="epatada-functions-used-3" class="level2">
+<h2 class="anchored" data-anchor-id="epatada-functions-used-3">EPATADA functions used:</h2>
+<ul>
+<li><p>TADA_CreatePointAUs()</p></li>
+<li><p>TADA_ViewNewAUs()</p></li>
+</ul>
+</section>
+<section id="ui-displays-3" class="level2">
+<h2 class="anchored" data-anchor-id="ui-displays-3">UI Displays:</h2>
+<ul>
+<li><p>Specify that this tab is optional and can be skipped using the “skip” button (opens up tab 5). Specify that currently functionality only allows for the development of point AUs (not polylines or polygons).</p></li>
+<li><p>AU prefix text box</p></li>
+<li><p>“Create AUs” button to run TADA_CreatePointAUs()</p></li>
+<li><p>“Display Map” button to run TADA_ViewNewAUs()</p></li>
+<li><p>“Download Shapefile” button to download point shapefile</p></li>
+</ul>
+</section>
+<section id="outputs-3" class="level2">
+<h2 class="anchored" data-anchor-id="outputs-3">Outputs:</h2>
+<ul>
+<li><p>tadat$df_working - Contains all data, appended remove fields, appended geospatial information, and new AU assignments from point locations</p></li>
+<li><p>tadat$df_final - Trimmed dataset with excluded MLs</p></li>
+<li><p>tadat$AUMLRef - ML to AU crosswalk updated with new point AUs</p></li>
+</ul>
+</section>
+<section id="questionsdecisions-3" class="level2">
+<h2 class="anchored" data-anchor-id="questionsdecisions-3">Questions/Decisions:</h2>
+<p>None</p>
+</section>
+</section>
+<section id="tab-5" class="level1">
+<h1>Tab 5</h1>
+<section id="purpose-4" class="level2">
+<h2 class="anchored" data-anchor-id="purpose-4">Purpose:</h2>
+<p>Associate existing ATTAINS designated uses with the reviewed AUs.</p>
+</section>
+<section id="workflow-4" class="level2">
+<h2 class="anchored" data-anchor-id="workflow-4">Workflow:</h2>
+<ol type="1">
+<li>Display the organization selections from Tab 3 as read-only.</li>
+<li>Optional upload of AU to Use crosswalk (AU_UsesRef)</li>
+<li>Optional upload of ATTAINS uses to ATTAINS water type (waterUseRef)</li>
+<li>Retrieve existing AU/Use relationships from ATTAINS (via TADA_AssignUsesToAU()).</li>
+<li>Display the resulting crosswalk as editable table.</li>
+<li>Optional export of AU/Use crosswalk.</li>
+</ol>
+</section>
+<section id="epatada-functions-used-4" class="level2">
+<h2 class="anchored" data-anchor-id="epatada-functions-used-4">EPATADA functions used:</h2>
+<ul>
+<li>TADA_AssignUsesToAU()</li>
+</ul>
+</section>
+<section id="ui-displays-4" class="level2">
+<h2 class="anchored" data-anchor-id="ui-displays-4">UI Displays:</h2>
+<ul>
+<li><p>Side panel instructions, two upload buttons, “go” button, and save button</p></li>
+<li><p>Editable table generated from TADA_AssignUsesToAU()</p></li>
+</ul>
+</section>
+<section id="outputs-4" class="level2">
+<h2 class="anchored" data-anchor-id="outputs-4">Outputs:</h2>
+<ul>
+<li><p>tadat$df_working - Contains all data, appended remove fields, appended geospatial information, new AU assignments from point locations</p></li>
+<li><p>tadat$df_final - Trimmed dataset with excluded MLs</p></li>
+<li><p>tadat$AUMLRef - ML to AU crosswalk</p></li>
+<li><p>tadat$UsetoAURef - AU to use crosswalk</p></li>
+</ul>
+</section>
+<section id="questionsdecisions-4" class="level2">
+<h2 class="anchored" data-anchor-id="questionsdecisions-4">Questions/Decisions:</h2>
+<ul>
+<li>If a user uploads a crosswalk table as waterUseRef in the TADA_AssignUsesToAU(), how does this interact with Tab 6? Does Tab 5 potentially make Tab 6 redundant?</li>
+</ul>
+</section>
+</section>
+<section id="tab-6" class="level1">
+<h1>Tab 6</h1>
+<section id="purpose-5" class="level2">
+<h2 class="anchored" data-anchor-id="purpose-5">Purpose:</h2>
+<p>Add designated uses not already assigned through the existing ATTAINS relationships.</p>
+</section>
+<section id="workflow-5" class="level2">
+<h2 class="anchored" data-anchor-id="workflow-5">Workflow:</h2>
+<ol type="1">
+<li>Select organizations from which available use names should be populated, or choose all allowable ATTAINS uses (via rExpertQuery::EQ_DomainValues(“org_id”)). Potentially filter by water type.</li>
+<li>Select AUs.</li>
+<li>Manually create a crosswalk table by choosing one or more AUs and one or more uses. Develop editable table.</li>
+<li>Save and append to existing AU/Use table.</li>
+</ol>
+</section>
+<section id="epatada-functions-used-5" class="level2">
+<h2 class="anchored" data-anchor-id="epatada-functions-used-5">EPATADA functions used:</h2>
+<p>None</p>
+</section>
+<section id="ui-displays-5" class="level2">
+<h2 class="anchored" data-anchor-id="ui-displays-5">UI Displays:</h2>
+<ul>
+<li><p>Side panel instructions, organization select, use select, AU select, “build” button, and save button</p></li>
+<li><p>Editable table generated from iterative AU/use building</p></li>
+</ul>
+</section>
+<section id="outputs-5" class="level2">
+<h2 class="anchored" data-anchor-id="outputs-5">Outputs:</h2>
+<ul>
+<li><p>tadat$df_working - Contains all data, appended remove fields, appended geospatial information, new AU assignments from point locations</p></li>
+<li><p>tadat$df_final - Trimmed dataset with excluded MLs</p></li>
+<li><p>tadat$AUMLRef - ML to AU crosswalk</p></li>
+<li><p>tadat$UsetoAURef - AU to use crosswalk updated from this tab.</p></li>
+</ul>
+</section>
+<section id="questionsdecisions-5" class="level2">
+<h2 class="anchored" data-anchor-id="questionsdecisions-5">Questions/Decisions:</h2>
+<ul>
+<li>What is “CST”? I see this mentioned but not defined and I’m unfamiliar with the term.</li>
+</ul>
+</section>
+</section>
+<section id="tab-7" class="level1">
+<h1>Tab 7</h1>
+<section id="purpose-6" class="level2">
+<h2 class="anchored" data-anchor-id="purpose-6">Purpose:</h2>
+<p>Assign salt/fresh indicators and other spatial criteria at the monitoring location or AU level.</p>
+</section>
+<section id="workflow-6" class="level2">
+<h2 class="anchored" data-anchor-id="workflow-6">Workflow:</h2>
+<ol type="1">
+<li>Choose ML-level or AU-level assignment.</li>
+<li>Optionally run TADA_AssignSaltFreshIndicator().</li>
+<li>Review and edit sites or AU table with TADA.SaltFreshIndicator column.</li>
+<li>Add or edit UniqueSpatialCriteria values.</li>
+<li>Review results on a map.</li>
+</ol>
+</section>
+<section id="epatada-functions-used-6" class="level2">
+<h2 class="anchored" data-anchor-id="epatada-functions-used-6">EPATADA functions used:</h2>
+<ul>
+<li>TADA_AssignSaltFreshIndicator()</li>
+</ul>
+</section>
+<section id="ui-displays-6" class="level2">
+<h2 class="anchored" data-anchor-id="ui-displays-6">UI Displays:</h2>
+</section>
+<section id="outputs-6" class="level2">
+<h2 class="anchored" data-anchor-id="outputs-6">Outputs:</h2>
+</section>
+<section id="questionsdecisions-6" class="level2">
+<h2 class="anchored" data-anchor-id="questionsdecisions-6">Questions/Decisions:</h2>
+<ul>
+<li><p>What other spatial criteria could be considered besides the salt/freshwater indicator?</p></li>
+<li><p>Should this tab also be considered optional?</p></li>
+<li><p>I think I need a reminder about Module 1 and Module 3. Should we consider jurisdiction (e.g., tribal boundary layers), ecoregion, etc. or would that be handled elsewhere?</p></li>
+</ul>
+</section>
+</section>
+<section id="tab-8" class="level1">
+<h1>Tab 8</h1>
+<section id="purpose-7" class="level2">
+<h2 class="anchored" data-anchor-id="purpose-7">Purpose:</h2>
+<p>Define the set of parameters that users can assign to designated uses.</p>
+</section>
+<section id="workflow-7" class="level2">
+<h2 class="anchored" data-anchor-id="workflow-7">Workflow:</h2>
+<ol type="1">
+<li>Generate list of parameters from CST/ATTAINS/WQX.</li>
+<li>Default to filter by organizations selected earlier. Allow for user to filter by more orgs and add/drop parameters freely.</li>
+</ol>
+</section>
+<section id="epatada-functions-used-7" class="level2">
+<h2 class="anchored" data-anchor-id="epatada-functions-used-7">EPATADA functions used:</h2>
+<p>None</p>
+</section>
+<section id="ui-displays-7" class="level2">
+<h2 class="anchored" data-anchor-id="ui-displays-7">UI Displays:</h2>
+<ul>
+<li>List of selected parameters</li>
+</ul>
+</section>
+<section id="outputs-7" class="level2">
+<h2 class="anchored" data-anchor-id="outputs-7">Outputs:</h2>
+</section>
+<section id="questionsdecisions-7" class="level2">
+<h2 class="anchored" data-anchor-id="questionsdecisions-7">Questions/Decisions:</h2>
+<ul>
+<li><p>Are uses and parameter already linked where we’d have defaults to evaluate in Tab 9?</p></li>
+<li><p>Is there a reason to keep Tab 8 and Tab 9 separate?</p></li>
+</ul>
+</section>
+</section>
+<section id="tab-9" class="level1">
+<h1>Tab 9</h1>
+<section id="purpose-8" class="level2">
+<h2 class="anchored" data-anchor-id="purpose-8">Purpose:</h2>
+<p>Associate the selected parameters with the selected designated uses.</p>
+</section>
+<section id="workflow-8" class="level2">
+<h2 class="anchored" data-anchor-id="workflow-8">Workflow:</h2>
+<ol type="1">
+<li>Pull in designated uses from Tabs 5 and 6 and parameters from Tab 8. Display as editable table if defaults exist.</li>
+<li>Allow the user to add/remove parameters per use from those identified in Tab 8.</li>
+<li>Validate for duplicates and incomplete mappings.</li>
+<li>Confirm the assignments.</li>
+</ol>
+</section>
+<section id="epatada-functions-used-8" class="level2">
+<h2 class="anchored" data-anchor-id="epatada-functions-used-8">EPATADA functions used:</h2>
+<p>None</p>
+</section>
+<section id="ui-displays-8" class="level2">
+<h2 class="anchored" data-anchor-id="ui-displays-8">UI Displays:</h2>
+<ul>
+<li>Editable table of uses and parameters.</li>
+</ul>
+</section>
+<section id="outputs-8" class="level2">
+<h2 class="anchored" data-anchor-id="outputs-8">Outputs:</h2>
+</section>
+<section id="questionsdecisions-8" class="level2">
+<h2 class="anchored" data-anchor-id="questionsdecisions-8">Questions/Decisions:</h2>
+</section>
+</section>
+<section id="tab-10" class="level1">
+<h1>Tab 10</h1>
+<section id="purpose-9" class="level2">
+<h2 class="anchored" data-anchor-id="purpose-9">Purpose:</h2>
+<p>Combine all reviewed crosswalks and spatial attributes into the final Module 2 reference table for Module 3.</p>
+</section>
+<section id="workflow-9" class="level2">
+<h2 class="anchored" data-anchor-id="workflow-9">Workflow:</h2>
+<ol type="1">
+<li>Combine crosswalks created in preceding tabs.</li>
+<li>Display the consolidated table.</li>
+<li>Allow final user review and editing.</li>
+<li>Download the result for Module 3.</li>
+</ol>
+</section>
+<section id="epatada-functions-used-9" class="level2">
+<h2 class="anchored" data-anchor-id="epatada-functions-used-9">EPATADA functions used:</h2>
+<p>None</p>
+</section>
+<section id="ui-displays-9" class="level2">
+<h2 class="anchored" data-anchor-id="ui-displays-9">UI Displays:</h2>
+<ul>
+<li>Large editable table</li>
+</ul>
+</section>
+<section id="outputs-9" class="level2">
+<h2 class="anchored" data-anchor-id="outputs-9">Outputs:</h2>
+</section>
+<section id="questionsdecisions-9" class="level2">
+<h2 class="anchored" data-anchor-id="questionsdecisions-9">Questions/Decisions:</h2>
+</section>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

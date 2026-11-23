@@ -1,0 +1,398 @@
+---
+title: "Development Plan for TADAShinyJoinToAU Module"
+author: "Ben Block"
+format: docx
+editor: visual
+execute:
+  eval: FALSE
+---
+
+## Scope
+
+The Module 2 application, TADAShinyJoinToAU, begins with outputs from Module 1 and ends with a consolidated reference table for Module 3. The proposed application should function as a guided workflow for connecting water quality monitoring locations (MLs) to Assessment Units (AUs), assigning designated uses and parameters, and building the reference data needed for subsequent assessments. Throughout the process, users will have the ability to edit automated processes and carry their decisions forward.
+
+# Proposed application navigation
+
+Module 2 will contain 10 tabs organized sequentially as described in the table below.
+
+| Short Tab Name | Description |
+|---------------------------|---------------------------------------------|
+| Load Data (Tab 1) | Establish the initial water quality dataset and application session. |
+| Flag Sites (Tab 2) | Identify nearby monitoring locations and questionable coordinates, then let users decide which locations to retain and how nearby sites should be grouped. |
+| Join AUs (Tab 3) | Match retained monitoring locations to existing ATTAINS AUs, allow corrections, and establish the authoritative AU/ML relationship. |
+| Create AUs (Tab 4) | Create point AUs for monitoring locations not matched to existing AUs. |
+| Join Uses (Tab 5) | Associate existing ATTAINS designated uses with the reviewed AUs. |
+| Add Uses (Tab 6) | Add designated uses not already assigned through the existing ATTAINS relationships. |
+| Spatial Criteria (Tab 7) | Assign salt/fresh indicators and other spatial criteria at the monitoring location or AU level. |
+| Select Parameters (Tab 8) | Define the set of parameters that users can assign to designated uses. |
+| Assign Parameters (Tab 9) | Associate the selected parameters with the selected designated uses. |
+| Final Reference (Tab 10) | Combine all reviewed crosswalks and spatial attributes into the final Module 2 reference table for Module 3. |
+
+# Tab 1
+
+## Purpose:
+
+Establish the initial water quality dataset and application session.
+
+## Workflow:
+
+1.  Provide general instructions of this tab and subsequent tabs
+
+2.  User uploads the output file from TADAShiny Module 1
+
+3.  Validate the file structure and required fields.
+
+4.  Review the number of records, unique monitoring locations, organizations, and available coordinates.
+
+5.  Confirm the dataset and proceed to Tab 2.
+
+## EPATADA functions used:
+
+None
+
+## UI Displays:
+
+- Display of uploaded data table (view only)
+
+- Input file summary including \# rows, \# columns, and \# monitoring locations
+
+## Outputs:
+
+- tadat\$df_WQ_input_original - Immutable copy of uploaded data
+
+- tadat\$df_working - Working copy of uploaded data
+
+## Questions/Decisions:
+
+- Consider a modal pop-up for that provides general instructions of this tab and subsequent tabs? Other options akin to "Help" buttons?
+
+# Tab 2
+
+## Purpose:
+
+Identify nearby monitoring locations and questionable coordinates, then let users decide which locations to retain and how nearby sites should be grouped.
+
+## Workflow:
+
+**Required files**
+
+- tadat\$df_working (source: Tab 1)
+
+**Workflow**
+
+1.  Run TADA_FlagCoordinates(). Uses tadat\$df_working.
+
+2.  Display flagged coordinates on a map using TADA_FlaggedSitesMap().
+
+3.  Allow individual or bulk exclusion of monitoring locations with suspect coordinates (via editable table).
+
+4.  Allow users to change the nearby-site distance threshold. Then run TADA_FindNearbySites(). Uses output from edited table after TADA_FlagCoordinates() is applied.
+
+5.  Display nearby sites on a map using TADA_NearbySitesMap().
+
+6.  Allow users to keep groups, separate individual locations, or assign a custom TADA.MonitoringLocationIdentifier (via editable table).
+
+7.  Update the full working dataset (tadat\$df_working).
+
+    1.  TADA.Remove should be set to TRUE if a user opts to exclude the MonitoringLocation on any tab, otherwise it remains FALSE
+
+    2.  TADA.RemovalReason should add a flag/comment as reflecting the tab it was removed on.
+
+8.  Create a final dataset (tadat\$df_final) with excluded monitoring location data removed.
+
+## EPATADA functions used:
+
+- TADA_FlagCoordinates()
+
+- TADA_FindNearbySites()
+
+- TADA_FlaggedSitesMap()
+
+- TADA_NearbySitesMap()
+
+## UI Displays:
+
+- Side panel instructions, nearby-site distance threshold, "go" button, and save button
+
+- Map and editable table for TADA_FlagCoordinates() and TADA_FlaggedSitesMap()
+
+- Map and editable table for TADA_FindNearbySites() and TADA_NearbySitesMap()
+
+## Outputs:
+
+- tadat\$df_working - Contains all data but appended remove fields
+
+- tadat\$df_final - Trimmed dataset
+
+## Questions/Decisions:
+
+- Best practices for maintaining the working and final datasets?
+
+# Tab 3
+
+## Purpose:
+
+Match retained monitoring locations to existing ATTAINS AUs, allow corrections, and establish the authoritative AU/ML relationship.
+
+## Workflow:
+
+1.  Display ATTAINS organizations from rExpertQuery::EQ_DomainValues("org_id"). Allow an "All" option. User can select one or more orgs via a dropdown menu.
+2.  Optional upload of an existing AU/ML crosswalk table. QA/QC check to ensure all required fields are present.
+3.  Run the ML to AU matching process using TADA_CreateAUMLCrosswalk().
+4.  Display the resulting matches on a map (via TADA_ViewATTAINS()) and in an editable table. Link them visually.
+5.  Let users edit AU assignments (ATTAINS.AssessmentUnitIdentifier field).
+6.  Update working and final datasets from the edited output of TADA_CreateAUMLCrosswalk() \[TADA_with_ATTAINS dataframe within the list\].
+
+## EPATADA functions used:
+
+- TADA_CreateAUMLCrosswalk()
+
+- TADA_ViewATTAINS()
+
+## UI Displays:
+
+- Side panel instructions, upload button for existing AU/ML crosswalk table, "go" button, "update map" button, and save button
+
+- Map and editable table from TADA_CreateAUMLCrosswalk() and TADA_ViewATTAINS()
+
+## Outputs:
+
+- tadat\$df_working - Contains all data, appended remove fields, and appended geospatial information
+
+- tadat\$df_final - Trimmed dataset with excluded MLs
+
+- tadat\$AUMLRef - ML to AU crosswalk
+
+## Questions/Decisions:
+
+- Perhaps this tabs launch should be two steps? First is a button that generates the table via TADA_CreateAUMLCrosswalk() and second is a button that generates the map via TADA_ViewATTAINS()? If tied together, the logic may get confusing to update the map based on the original table from TADA_CreateAUMLCrosswalk() or the user-edited one.
+
+- Any possibility of conflicting ML to AU matches across organizations?
+
+# Tab 4
+
+## Purpose:
+
+Create point AUs for monitoring locations not matched to existing AUs.
+
+## Workflow:
+
+1.  Filter tadat\$df_final to those sites without assessment units (i.e., is.na(ATTAINS.AssessmentUnitIdentifier)).
+2.  Accept a user-specified AU naming prefix.
+3.  Create new point AUs using TADA_CreatePointAUs().
+4.  Provide a map (via TADA_ViewNewAUs()) and editable table. Allow users to edit the proposed AU names.
+5.  Export shapefiles for ATTAINS import.
+6.  Combine created AUs with existing AU assignments.
+
+## EPATADA functions used:
+
+- TADA_CreatePointAUs()
+
+- TADA_ViewNewAUs()
+
+## UI Displays:
+
+- Specify that this tab is optional and can be skipped using the "skip" button (opens up tab 5). Specify that currently functionality only allows for the development of point AUs (not polylines or polygons).
+
+- AU prefix text box
+
+- "Create AUs" button to run TADA_CreatePointAUs()
+
+- "Display Map" button to run TADA_ViewNewAUs()
+
+- "Download Shapefile" button to download point shapefile
+
+## Outputs:
+
+- tadat\$df_working - Contains all data, appended remove fields, appended geospatial information, and new AU assignments from point locations
+
+- tadat\$df_final - Trimmed dataset with excluded MLs
+
+- tadat\$AUMLRef - ML to AU crosswalk updated with new point AUs
+
+## Questions/Decisions:
+
+None
+
+# Tab 5
+
+## Purpose:
+
+Associate existing ATTAINS designated uses with the reviewed AUs.
+
+## Workflow:
+
+1.  Display the organization selections from Tab 3 as read-only.
+2.  Optional upload of AU to Use crosswalk (AU_UsesRef)
+3.  Optional upload of ATTAINS uses to ATTAINS water type (waterUseRef)
+4.  Retrieve existing AU/Use relationships from ATTAINS (via TADA_AssignUsesToAU()).
+5.  Display the resulting crosswalk as editable table.
+6.  Optional export of AU/Use crosswalk.
+
+## EPATADA functions used:
+
+- TADA_AssignUsesToAU()
+
+## UI Displays:
+
+- Side panel instructions, two upload buttons, "go" button, and save button
+
+- Editable table generated from TADA_AssignUsesToAU()
+
+## Outputs:
+
+- tadat\$df_working - Contains all data, appended remove fields, appended geospatial information, new AU assignments from point locations
+
+- tadat\$df_final - Trimmed dataset with excluded MLs
+
+- tadat\$AUMLRef - ML to AU crosswalk
+
+- tadat\$UsetoAURef - AU to use crosswalk
+
+## Questions/Decisions:
+
+- If a user uploads a crosswalk table as waterUseRef in the TADA_AssignUsesToAU(), how does this interact with Tab 6? Does Tab 5 potentially make Tab 6 redundant?
+
+# Tab 6
+
+## Purpose:
+
+Add designated uses not already assigned through the existing ATTAINS relationships.
+
+## Workflow:
+
+1.  Select organizations from which available use names should be populated, or choose all allowable ATTAINS uses (via rExpertQuery::EQ_DomainValues("org_id")). Potentially filter by water type.
+2.  Select AUs.
+3.  Manually create a crosswalk table by choosing one or more AUs and one or more uses. Develop editable table.
+4.  Save and append to existing AU/Use table.
+
+## EPATADA functions used:
+
+None
+
+## UI Displays:
+
+- Side panel instructions, organization select, use select, AU select, "build" button, and save button
+
+- Editable table generated from iterative AU/use building
+
+## Outputs:
+
+- tadat\$df_working - Contains all data, appended remove fields, appended geospatial information, new AU assignments from point locations
+
+- tadat\$df_final - Trimmed dataset with excluded MLs
+
+- tadat\$AUMLRef - ML to AU crosswalk
+
+- tadat\$UsetoAURef - AU to use crosswalk updated from this tab.
+
+## Questions/Decisions:
+
+- What is "CST"? I see this mentioned but not defined and I'm unfamiliar with the term.
+
+# Tab 7
+
+## Purpose:
+
+Assign salt/fresh indicators and other spatial criteria at the monitoring location or AU level.
+
+## Workflow:
+
+1.  Choose ML-level or AU-level assignment.
+2.  Optionally run TADA_AssignSaltFreshIndicator().
+3.  Review and edit sites or AU table with TADA.SaltFreshIndicator column.
+4.  Add or edit UniqueSpatialCriteria values.
+5.  Review results on a map.
+
+## EPATADA functions used:
+
+- TADA_AssignSaltFreshIndicator()
+
+## UI Displays:
+
+## Outputs:
+
+## Questions/Decisions:
+
+- What other spatial criteria could be considered besides the salt/freshwater indicator?
+
+- Should this tab also be considered optional?
+
+- I think I need a reminder about Module 1 and Module 3. Should we consider jurisdiction (e.g., tribal boundary layers), ecoregion, etc. or would that be handled elsewhere?
+
+# Tab 8
+
+## Purpose:
+
+Define the set of parameters that users can assign to designated uses.
+
+## Workflow:
+
+1.  Generate list of parameters from CST/ATTAINS/WQX.
+2.  Default to filter by organizations selected earlier. Allow for user to filter by more orgs and add/drop parameters freely.
+
+## EPATADA functions used:
+
+None
+
+## UI Displays:
+
+- List of selected parameters
+
+## Outputs:
+
+## Questions/Decisions:
+
+- Are uses and parameter already linked where we'd have defaults to evaluate in Tab 9?
+
+- Is there a reason to keep Tab 8 and Tab 9 separate?
+
+# Tab 9
+
+## Purpose:
+
+Associate the selected parameters with the selected designated uses.
+
+## Workflow:
+
+1.  Pull in designated uses from Tabs 5 and 6 and parameters from Tab 8. Display as editable table if defaults exist.
+2.  Allow the user to add/remove parameters per use from those identified in Tab 8.
+3.  Validate for duplicates and incomplete mappings.
+4.  Confirm the assignments.
+
+## EPATADA functions used:
+
+None
+
+## UI Displays:
+
+- Editable table of uses and parameters.
+
+## Outputs:
+
+## Questions/Decisions:
+
+# Tab 10
+
+## Purpose:
+
+Combine all reviewed crosswalks and spatial attributes into the final Module 2 reference table for Module 3.
+
+## Workflow:
+
+1.  Combine crosswalks created in preceding tabs.
+2.  Display the consolidated table.
+3.  Allow final user review and editing.
+4.  Download the result for Module 3.
+
+## EPATADA functions used:
+
+None
+
+## UI Displays:
+
+- Large editable table
+
+## Outputs:
+
+## Questions/Decisions:
