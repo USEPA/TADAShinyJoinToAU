@@ -59,16 +59,16 @@ app_ui <- function(request) {
       shiny::tabsetPanel(
         id = "tabbar",
         shiny::tabPanel(
-          "1. Load File",
+          "1. Load TADA File",
           value = "Load", # each tabPanel represents a tab page at the top of the navbar
           htmltools::br(),
-          mod_load_file_ui("load_file_1")
+          mod_load_file_ui("load_file")
         ),
         shiny::tabPanel(
-          "2. Join AUs",
-          value = "Join",
+          "2. Flag and Review Sites",
+          value = "site_review",
           htmltools::br(),
-          mod_join_aus_ui("join_aus_1") # ,
+          mod_site_review_ui("site_review") # ,
           # htmltools::hr(),
           # mod_download_result_ui("download_result_1")
         ),

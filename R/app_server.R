@@ -20,8 +20,9 @@ app_server <- function(input, output, session) {
   tadat$df_ATTAINS_orgs <- get_df_ATTAINS_orgs()
 
   # modules
-  mod_load_file_server("load_file_1", tadat)
-  mod_join_aus_server("join_aus_1", tadat)
+  mod_load_file_server("load_file", tadat)
+  mod_site_review_server("site_review", tadat)
+  # mod_join_aus_server("join_aus_1", tadat)
   # mod_download_result_server("download_result_1", tadat)
 
   # disable other tabs upon start
