@@ -52,19 +52,19 @@ None
 
 ## UI Displays:
 
-- Display of uploaded data table (view only)
+-   Display of uploaded data table (view only)
 
-- Input file summary including \# rows, \# columns, and \# monitoring locations
+-   Input file summary including \# rows, \# columns, and \# monitoring locations
 
 ## Outputs:
 
-- tadat\$df_WQ_input_original - Immutable copy of uploaded data
+-   tadat\$df_WQ_input_original - Immutable copy of uploaded data
 
-- tadat\$df_working - Working copy of uploaded data
+-   tadat\$df_working - Working copy of uploaded data
 
 ## Questions/Decisions:
 
-- Consider a modal pop-up for that provides general instructions of this tab and subsequent tabs? Other options akin to "Help" buttons?
+-   Consider a modal pop-up for that provides general instructions of this tab and subsequent tabs? Other options akin to "Help" buttons?
 
 # Tab 2
 
@@ -76,7 +76,7 @@ Identify nearby monitoring locations and questionable coordinates, then let user
 
 **Required files**
 
-- tadat\$df_working (source: Tab 1)
+-   tadat\$df_working (source: Tab 1)
 
 **Workflow**
 
@@ -102,31 +102,31 @@ Identify nearby monitoring locations and questionable coordinates, then let user
 
 ## EPATADA functions used:
 
-- TADA_FlagCoordinates()
+-   TADA_FlagCoordinates()
 
-- TADA_FindNearbySites()
+-   TADA_FindNearbySites()
 
-- TADA_FlaggedSitesMap()
+-   TADA_FlaggedSitesMap()
 
-- TADA_NearbySitesMap()
+-   TADA_NearbySitesMap()
 
 ## UI Displays:
 
-- Side panel instructions, nearby-site distance threshold, "go" button, and save button
+-   Side panel instructions, nearby-site distance threshold, "go" button, and save button
 
-- Map and editable table for TADA_FlagCoordinates() and TADA_FlaggedSitesMap()
+-   Map and editable table for TADA_FlagCoordinates() and TADA_FlaggedSitesMap()
 
-- Map and editable table for TADA_FindNearbySites() and TADA_NearbySitesMap()
+-   Map and editable table for TADA_FindNearbySites() and TADA_NearbySitesMap()
 
 ## Outputs:
 
-- tadat\$df_working - Contains all data but appended remove fields
+-   tadat\$df_working - Contains all data but appended remove fields
 
-- tadat\$df_final - Trimmed dataset
+-   tadat\$df_final - Trimmed dataset
 
 ## Questions/Decisions:
 
-- Best practices for maintaining the working and final datasets?
+-   Best practices for maintaining the working and final datasets?
 
 # Tab 3
 
@@ -145,29 +145,29 @@ Match retained monitoring locations to existing ATTAINS AUs, allow corrections, 
 
 ## EPATADA functions used:
 
-- TADA_CreateAUMLCrosswalk()
+-   TADA_CreateAUMLCrosswalk()
 
-- TADA_ViewATTAINS()
+-   TADA_ViewATTAINS()
 
 ## UI Displays:
 
-- Side panel instructions, upload button for existing AU/ML crosswalk table, "go" button, "update map" button, and save button
+-   Side panel instructions, upload button for existing AU/ML crosswalk table, "go" button, "update map" button, and save button
 
-- Map and editable table from TADA_CreateAUMLCrosswalk() and TADA_ViewATTAINS()
+-   Map and editable table from TADA_CreateAUMLCrosswalk() and TADA_ViewATTAINS()
 
 ## Outputs:
 
-- tadat\$df_working - Contains all data, appended remove fields, and appended geospatial information
+-   tadat\$df_working - Contains all data, appended remove fields, and appended geospatial information
 
-- tadat\$df_final - Trimmed dataset with excluded MLs
+-   tadat\$df_final - Trimmed dataset with excluded MLs
 
-- tadat\$AUMLRef - ML to AU crosswalk
+-   tadat\$AUMLRef - ML to AU crosswalk
 
 ## Questions/Decisions:
 
-- Perhaps this tabs launch should be two steps? First is a button that generates the table via TADA_CreateAUMLCrosswalk() and second is a button that generates the map via TADA_ViewATTAINS()? If tied together, the logic may get confusing to update the map based on the original table from TADA_CreateAUMLCrosswalk() or the user-edited one.
+-   Perhaps this tabs launch should be two steps? First is a button that generates the table via TADA_CreateAUMLCrosswalk() and second is a button that generates the map via TADA_ViewATTAINS()? If tied together, the logic may get confusing to update the map based on the original table from TADA_CreateAUMLCrosswalk() or the user-edited one.
 
-- Any possibility of conflicting ML to AU matches across organizations?
+-   Any possibility of conflicting ML to AU matches across organizations?
 
 # Tab 4
 
@@ -186,29 +186,29 @@ Create point AUs for monitoring locations not matched to existing AUs.
 
 ## EPATADA functions used:
 
-- TADA_CreatePointAUs()
+-   TADA_CreatePointAUs()
 
-- TADA_ViewNewAUs()
+-   TADA_ViewNewAUs()
 
 ## UI Displays:
 
-- Specify that this tab is optional and can be skipped using the "skip" button (opens up tab 5). Specify that currently functionality only allows for the development of point AUs (not polylines or polygons).
+-   Specify that this tab is optional and can be skipped using the "skip" button (opens up tab 5). Specify that currently functionality only allows for the development of point AUs (not polylines or polygons).
 
-- AU prefix text box
+-   AU prefix text box
 
-- "Create AUs" button to run TADA_CreatePointAUs()
+-   "Create AUs" button to run TADA_CreatePointAUs()
 
-- "Display Map" button to run TADA_ViewNewAUs()
+-   "Display Map" button to run TADA_ViewNewAUs()
 
-- "Download Shapefile" button to download point shapefile
+-   "Download Shapefile" button to download point shapefile
 
 ## Outputs:
 
-- tadat\$df_working - Contains all data, appended remove fields, appended geospatial information, and new AU assignments from point locations
+-   tadat\$df_working - Contains all data, appended remove fields, appended geospatial information, and new AU assignments from point locations
 
-- tadat\$df_final - Trimmed dataset with excluded MLs
+-   tadat\$df_final - Trimmed dataset with excluded MLs
 
-- tadat\$AUMLRef - ML to AU crosswalk updated with new point AUs
+-   tadat\$AUMLRef - ML to AU crosswalk updated with new point AUs
 
 ## Questions/Decisions:
 
@@ -231,27 +231,27 @@ Associate existing ATTAINS designated uses with the reviewed AUs.
 
 ## EPATADA functions used:
 
-- TADA_AssignUsesToAU()
+-   TADA_AssignUsesToAU()
 
 ## UI Displays:
 
-- Side panel instructions, two upload buttons, "go" button, and save button
+-   Side panel instructions, two upload buttons, "go" button, and save button
 
-- Editable table generated from TADA_AssignUsesToAU()
+-   Editable table generated from TADA_AssignUsesToAU()
 
 ## Outputs:
 
-- tadat\$df_working - Contains all data, appended remove fields, appended geospatial information, new AU assignments from point locations
+-   tadat\$df_working - Contains all data, appended remove fields, appended geospatial information, new AU assignments from point locations
 
-- tadat\$df_final - Trimmed dataset with excluded MLs
+-   tadat\$df_final - Trimmed dataset with excluded MLs
 
-- tadat\$AUMLRef - ML to AU crosswalk
+-   tadat\$AUMLRef - ML to AU crosswalk
 
-- tadat\$UsetoAURef - AU to use crosswalk
+-   tadat\$UsetoAURef - AU to use crosswalk
 
 ## Questions/Decisions:
 
-- If a user uploads a crosswalk table as waterUseRef in the TADA_AssignUsesToAU(), how does this interact with Tab 6? Does Tab 5 potentially make Tab 6 redundant?
+-   If a user uploads a crosswalk table as waterUseRef in the TADA_AssignUsesToAU(), how does this interact with Tab 6? Does Tab 5 potentially make Tab 6 redundant?
 
 # Tab 6
 
@@ -272,23 +272,25 @@ None
 
 ## UI Displays:
 
-- Side panel instructions, organization select, use select, AU select, "build" button, and save button
+-   Side panel instructions, organization select, use select, AU select, "build" button, and save button
 
-- Editable table generated from iterative AU/use building
+-   Editable table generated from iterative AU/use building
 
 ## Outputs:
 
-- tadat\$df_working - Contains all data, appended remove fields, appended geospatial information, new AU assignments from point locations
+-   tadat\$df_working - Contains all data, appended remove fields, appended geospatial information, new AU assignments from point locations
 
-- tadat\$df_final - Trimmed dataset with excluded MLs
+-   tadat\$df_final - Trimmed dataset with excluded MLs
 
-- tadat\$AUMLRef - ML to AU crosswalk
+-   tadat\$AUMLRef - ML to AU crosswalk
 
-- tadat\$UsetoAURef - AU to use crosswalk updated from this tab.
+-   tadat\$UsetoAURef - AU to use crosswalk updated from this tab.
 
 ## Questions/Decisions:
 
-- What is "CST"? I see this mentioned but not defined and I'm unfamiliar with the term.
+-   What is "CST"? I see this mentioned but not defined and I'm unfamiliar with the term.
+    -   CST = Criteria Search Tool (<https://www.epa.gov/wqs-tech/state-specific-water-quality-standards-effective-under-clean-water-act-cwa>)
+    -   
 
 # Tab 7
 
@@ -306,7 +308,8 @@ Assign salt/fresh indicators and other spatial criteria at the monitoring locati
 
 ## EPATADA functions used:
 
-- TADA_AssignSaltFreshIndicator()
+-   TADA_AssignSaltFreshIndicator()
+-   TADA_GetSaltFreshIndicator() - to allow users to download and modify the internal reference file which crosswalks ATTAINS water types and WQP monitoring location types to salt/fresh and
 
 ## UI Displays:
 
@@ -314,11 +317,19 @@ Assign salt/fresh indicators and other spatial criteria at the monitoring locati
 
 ## Questions/Decisions:
 
-- What other spatial criteria could be considered besides the salt/freshwater indicator?
+-   What other spatial criteria could be considered besides the salt/freshwater indicator?
 
-- Should this tab also be considered optional?
+    -   Any custom value provided by user - ex: ecoregion, species-based (ex: trout), use class, unique to state's criteria (ex: IL has "Chicago Area Waterways" criteria that apply to only a small number of waterbodies).
 
-- I think I need a reminder about Module 1 and Module 3. Should we consider jurisdiction (e.g., tribal boundary layers), ecoregion, etc. or would that be handled elsewhere?
+-   Should this tab also be considered optional?
+
+    -   Yes, a user could skip this if they do not have any unique spatial criteria
+
+-   I think I need a reminder about Module 1 and Module 3. Should we consider jurisdiction (e.g., tribal boundary layers), ecoregion, etc. or would that be handled elsewhere?
+
+    -   Jurisdiction is important here if it impacts the criteria that will be assigned to a monitoring location. States have many different ways of assigning unique spatial criteria so we are not planning on trying to populate that information for them, just give them an editable column for unique spatial criteria data that they can fill in as needed.
+
+    -   One idea we've had is to have users enter all options they want so that a dropdown menu is populated with their entries (to help prevent issues with joins in mod 3 due to misspellings).
 
 # Tab 8
 
@@ -333,19 +344,25 @@ Define the set of parameters that users can assign to designated uses.
 
 ## EPATADA functions used:
 
-None
+-   TADA_CrosswalkCSTWQXATTAINSParam() - default option
+
+-   TADA_CrosswalkWQXATTAINSParam() - if user does not intend to use data from Criteria Search Tool in Module 3
 
 ## UI Displays:
 
-- List of selected parameters
+-   List of selected parameters
 
 ## Outputs:
 
 ## Questions/Decisions:
 
-- Are uses and parameter already linked where we'd have defaults to evaluate in Tab 9?
+-   Are uses and parameter already linked where we'd have defaults to evaluate in Tab 9?
 
-- Is there a reason to keep Tab 8 and Tab 9 separate?
+    -   Yes, we can pull a partial crosswalk of parameters to uses from ATTAINS. It is most likely to be incomplete as most (all?) states do not record parameters in ATTAINS that have always met criteria.
+
+-   Is there a reason to keep Tab 8 and Tab 9 separate?
+
+    -   Most users do not enter all parameters they assessed for in ATTAINS, just those that did not meet criteria. We want to give users an easy way to assemble and review the entire list of parameters required for their analysis.
 
 # Tab 9
 
@@ -355,18 +372,22 @@ Associate the selected parameters with the selected designated uses.
 
 ## Workflow:
 
-1.  Pull in designated uses from Tabs 5 and 6 and parameters from Tab 8. Display as editable table if defaults exist.
-2.  Allow the user to add/remove parameters per use from those identified in Tab 8.
-3.  Validate for duplicates and incomplete mappings.
-4.  Confirm the assignments.
+1.  Pull in designated uses/parameters crosswalk from either TADA_CrosswalkCSTWQXATTAINSParam() or TADA_CrosswalkWQXATTAINSParam(). Add additional rows for any parameters selected in Tab 8 that are not included.
+2.  If  TADA_CrosswalkCSTWQXATTAINSParam() was used, generate a crosswalk of CST uses to ATTAINS uses for review and editing by user.
+3.  Display designated uses/parameters as editable table.
+4.  Allow the user to add/remove parameters per use from those identified in Tab 8.
+5.  Validate for duplicates and incomplete mappings.
+6.  Confirm the assignments.
 
 ## EPATADA functions used:
 
-None
+-   TADA_CrosswalkCSTATTAINSUse() - in development
+
+-   TADA_CreateParamUseRef() – in development
 
 ## UI Displays:
 
-- Editable table of uses and parameters.
+-   Editable table of uses and parameters.
 
 ## Outputs:
 
@@ -387,11 +408,13 @@ Combine all reviewed crosswalks and spatial attributes into the final Module 2 r
 
 ## EPATADA functions used:
 
-None
+-   TADA_MLSummaryRef()
+
+-   \*new function in development – function to check values in columns where allowable values are known/limited
 
 ## UI Displays:
 
-- Large editable table
+-   Large editable table
 
 ## Outputs:
 
